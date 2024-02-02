@@ -1,0 +1,72 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: dotnet build and test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: ['8.x' ]
+        
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET Core 6.x
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: |
+          6.0.x
+          8.0.x
+#        cache: true
+    - name: Display dotnet version
+      run: dotnet --version
+      env:
+        DOTNET_NOLOGO: 1
+        DOTNET_CLI_TELEMETRY_OPTOUT: 1
+#    - name: Setup dotnet ${{ matrix.dotnet-version }}
+#      uses: actions/setup-dotnet@v3
+#      with:
+#        dotnet-version: ${{ matrix.dotnet-version }}
+
+#    - name: Cache libchdb.so
+#      id: cache-libchdb
+#      uses: actions/cache@v4
+#      with:
+#        path: libchdb.so
+#        key: ${{ runner.os }}-libchdb
+    - name: Download chdb library
+      if: steps.cache-libchdb.outputs.cache-hit != 'true'
+      run: ./update_libchdb.sh v1.2.0
+#    - uses: actions/cache@v3
+#      with:
+#        path: ~/.nuget/packages
+#        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+#        restore-keys: |
+#          ${{ runner.os }}-nuget-
+
+    - name: Restore
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+    - name: Test
+      run: dotnet test --configuration Release --no-build --logger trx --results-directory "TestResults-${{ matrix.dotnet-version }}"
+    - name: Upload dotnet test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: dotnet-results-${{ matrix.dotnet-version }}
+        path: TestResults-${{ matrix.dotnet-version }}
+      # Use always() to always run this step to publish test results when there are test failures
+      if: ${{ always() }}
+    - name: Pack
+      run: dotnet pack -c Release --include-symbols
+#    - name: Publish the package to nuget.org
+#      run: dotnet nuget push nupkg/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
+#      env:
+#        NUGET_AUTH_TOKEN: ${{ secrets.NUGET_TOKEN }}

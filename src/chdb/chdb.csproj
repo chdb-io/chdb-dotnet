@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <InternalsVisibleTo>tests</InternalsVisibleTo>
+    <PackageId>chdb</PackageId>
+    <Title>chdb</Title>
+    <Description>chdb native bindings for dotnet core</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="libchdb.so" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

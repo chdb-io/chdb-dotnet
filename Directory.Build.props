@@ -1,0 +1,31 @@
+<Project>
+    <PropertyGroup>
+        <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+        <RuntimeIdentifiers>linux-x64;osx-x64</RuntimeIdentifiers>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+        <RootNamespace>ChDb</RootNamespace>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition="!$(MSBuildProjectName.EndsWith('Test')) AND !$(MSBuildProjectName.EndsWith('.Benchmarks'))">
+        <PackageOutputPath>../../nupkg</PackageOutputPath>
+        <Version>0.0.1-alpha</Version>
+        <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+        <PackageVersion Condition="'$(BuildNumber)' != ''">$(Version).$(BuildNumber)</PackageVersion>
+        <Authors>vilinski</Authors>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <PackageIcon>chdb.png</PackageIcon>
+        <PackageTags>clickhouse;chdb</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageProjectUrl>https://github.com/vilinski/chdb</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/chdb-io/chdb-dotnet</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <SourceLink>Create</SourceLink>
+    </PropertyGroup>
+
+    <ItemGroup Condition="!$(MSBuildProjectName.EndsWith('.Tests')) AND !$(MSBuildProjectName.EndsWith('.Benchmarks'))">
+        <None Include="../../chdb.png" Pack="true" PackagePath="" />
+        <None Include="../../README.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
+</Project>

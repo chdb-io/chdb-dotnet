@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\chdb\chdb.csproj" />
+  </ItemGroup>
+  
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>chdb</ToolCommandName>
+    <PackageId>chdb-tool</PackageId>
+    <Title>chdb tool</Title>
+    <Description>clickhouse local cli as a dotnet tool</Description>
+  </PropertyGroup>
+</Project>
