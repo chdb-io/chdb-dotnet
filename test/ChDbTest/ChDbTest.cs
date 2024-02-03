@@ -17,29 +17,35 @@ public class ChDbTest
     }
 
     [TestMethod]
-    [Ignore("Bugfix is in v1.2.1")]
-    public void QueryNullTest()
+    public void QueryErrorTest()
     {
         Assert.ThrowsException<ArgumentNullException>(() => ChDb.Query(null!));
-        //Assert.ThrowsException<ArgumentException>(() => ChDb.Query("wrong_query"));
-        //Assert.ThrowsException<ArgumentException>(() => ChDb.Query("wrong_query", "PrettyCompact"));
-        //Assert.ThrowsException<ArgumentException>(() => ChDb.Query("select version()", "wrong_format"));
         // TODO behavior changed in 1.2.1
-        Assert.IsNull(ChDb.Query("wrong_query"));
-        Assert.IsNull(ChDb.Query("wrong_query", "PrettyCompact"));
-        Assert.IsNull(ChDb.Query("select version()", "wrong_format"));
+        var r1 = ChDb.Query("wrong_query");
+        Assert.IsNotNull(r1);
+        Assert.IsNull(r1.Buf);
+        Assert.IsNotNull(r1.ErrorMessage);
+
+        var r2 = ChDb.Query("wrong_query", "PrettyCompact");
+        Assert.IsNotNull(r2);
+        Assert.IsNull(r2.Buf);
+        Assert.IsNotNull(r2.ErrorMessage);
+
+        var r3 = ChDb.Query("select version()", "wrong_format");
+        Assert.IsNotNull(r3);
+        Assert.IsNull(r3.Buf);
+        StringAssert.Contains(r3.ErrorMessage, "Unknown output format");
     }
 
     [TestMethod]
-    [Ignore("Bugfix is in v1.2.1")]
     public void NoDataTest()
     {
         var result = ChDb.Query("create table x(a UInt8, b UInt8, c UInt8) Engine=Memory");
         Assert.IsNotNull(result);
         Assert.AreEqual(0UL, result.RowsRead);
         Assert.AreEqual(0UL, result.BytesRead);
-        Assert.AreEqual("", result.Buf);
-        Assert.IsNotNull(result.ErrorMessage);
+        Assert.IsNull(result.Buf);
+        Assert.IsNull(result.ErrorMessage);
         Assert.AreNotEqual(TimeSpan.Zero, result.Elapsed);
         Assert.IsTrue(0.1 > result.Elapsed.TotalSeconds);
     }
@@ -93,7 +99,6 @@ public class ChDbTest
     [TestMethod]
     public void S3ParquetTest()
     {
-        //clickhouse local -q "DESCRIBE s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/house_parquet/house_0.parquet')"
         var result = ChDb.Query("DESCRIBE s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/house_parquet/house_0.parquet')");
         Assert.IsNotNull(result);
         Assert.IsNull(result.ErrorMessage);
@@ -115,7 +120,6 @@ public class ChDbTest
     }
 
     [TestMethod]
-    [Ignore("TODO")]
     public void CsvTest() {
         var csv = """
             Name, Age, City
@@ -131,19 +135,19 @@ public class ChDbTest
         {
             Format = "PrettyCompact",
             DataPath = dataPath,
-            // UdfPath = "/tmp/chdb/udf",
             LogLevel = "trace",
         };
         var result = session.Execute("SELECT * FROM 'test.csv'", "CSVWithNamesAndTypes");
         Assert.IsNotNull(result);
         Assert.AreEqual(4UL, result.RowsRead);
         Assert.AreEqual(155UL, result.BytesRead);
-        Assert.AreEqual("Name\tString\nAge\tUInt8\nCity\tString\nJohn\t25\tNew York\nAlice\t30\tLondon\nBob\t22\tTokyo\nEva\t28\tParis\n", result.Buf);
-        StringAssert.StartsWith(result.Buf, """"Name","Age","City"""");
+        StringAssert.StartsWith(result.Buf,
+            """
+            "Name","Age","City"
+            """);
     }
 
     [TestMethod]
-    [Ignore("Bugfix is in v1.2.1")]
     public void SessionTest()
     {
         using var session = new Session
@@ -151,24 +155,47 @@ public class ChDbTest
             Format = "PrettyCompact",
             LogLevel = "trace",
         };
-        // var r1 = session.Execute("select 1");
-        // Assert.IsNotNull(r1);
-        // Assert.AreEqual("1\n", r1.Buf);
-
         var nr = "xyz";
+
+        Assert.IsTrue(session.Execute($"SHOW DATABASES")?.Buf?.Contains("_local")); // there is _local database instead of default
+        Assert.AreEqual("", session.Execute($"SHOW TABLES")?.Buf);
+        StringAssert.Contains(session.Execute($"SELECT currentDatabase()")?.Buf, "_local");
+
+        var r1 = session.Execute($"DROP DATABASE IF EXISTS db_{nr}");
+        Assert.IsNotNull(r1);
+        Assert.IsNull(r1.Buf);
+        Assert.IsNull(r1.ErrorMessage);
+
         var r2 = session.Execute($"CREATE DATABASE IF NOT EXISTS db_{nr} ENGINE = Atomic");
-        //Assert.IsNotNull(r2);
-        var r3 = session.Execute($"CREATE TABLE IF NOT EXISTS db_{nr}.log_table_xxx (x String, y Int) ENGINE = Log;");
-        // Assert.IsNotNull(r3);
+        Assert.IsNotNull(r2);
+        Assert.IsNull(r2.Buf);
+        Assert.IsNull(r2.ErrorMessage);
+
+        var r3 = session.Execute($"CREATE TABLE IF NOT EXISTS db_{nr}.log_table_{nr} (x String, y Int) ENGINE = Log;");
+        Assert.IsNotNull(r3);
+        Assert.IsNull(r3.Buf);
+        Assert.IsNull(r3.ErrorMessage);
+
         var r4 = session.Execute($"INSERT INTO db_{nr}.log_table_{nr} VALUES ('a', 1), ('b', 3), ('c', 2), ('d', 5);");
-        // Assert.IsNotNull(r4);
+        Assert.IsNotNull(r4);
+        Assert.IsNull(r4.Buf);
+        Assert.IsNull(r4.ErrorMessage);
+
         var r5 = session.Execute($"SELECT * FROM db_{nr}.log_table_{nr}", "TabSeparatedWithNames");
         Assert.IsNotNull(r5);
         Assert.AreEqual("x\ty\na\t1\nb\t3\nc\t2\nd\t5\n", r5.Buf);
+        Assert.IsNull(r5.ErrorMessage);
+
         var r6 = session.Execute($"CREATE VIEW db_{nr}.view_{nr} AS SELECT * FROM db_{nr}.log_table_{nr} LIMIT 4;");
-        // Assert.IsNotNull(r6);
+        Assert.IsNotNull(r6);
+        Assert.IsNull(r6.Buf);
+        Assert.IsNull(r6.ErrorMessage);
+
         var r7 = session.Execute($"SELECT * FROM db_{nr}.view_{nr}", "TabSeparatedWithNames");
         Assert.IsNotNull(r7);
         Assert.AreEqual("x\ty\na\t1\nb\t3\nc\t2\nd\t5\n", r7.Buf);
+        Assert.IsNull(r7.ErrorMessage);
+
+        session.Execute($"DROP DATABASE IF EXISTS db_{nr}");
     }
 }
