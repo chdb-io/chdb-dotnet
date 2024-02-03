@@ -4,16 +4,16 @@
 case "$(uname -s)" in
     Linux)
         if [[ $(uname -m) == "aarch64" ]]; then
-            PLATFORM="linux-aarch64-libchdb.tar.gz"
+            PLATFORM="linux-aarch64"
         else
-            PLATFORM="linux-x86_64-libchdb.tar.gz"
+            PLATFORM="linux-x86_64"
         fi
         ;;
     Darwin)
         if [[ $(uname -m) == "arm64" ]]; then
-            PLATFORM="macos-arm64-libchdb.tar.gz"
+            PLATFORM="macos-arm64"
         else
-            PLATFORM="macos-x86_64-libchdb.tar.gz"
+            PLATFORM="macos-x86_64"
         fi
         ;;
     *)
@@ -26,9 +26,9 @@ esac
 LATEST_RELEASE=$(curl --silent "https://api.github.com/repos/chdb-io/chdb/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 RELEASE=${1:-$LATEST_RELEASE}
 
-DOWNLOAD_URL="https://github.com/chdb-io/chdb/releases/download/$RELEASE/$PLATFORM"
+DOWNLOAD_URL="https://github.com/chdb-io/chdb/releases/download/$RELEASE/$PLATFORM-libchdb.tar.gz"
 
-echo "Downloading $PLATFORM from $DOWNLOAD_URL (latest is $LATEST_RELEASE)"
+echo "Downloading $PLATFORM-libchdb.tar.gz from $DOWNLOAD_URL (latest is $LATEST_RELEASE)"
 
 # Download the file
 curl -L -o libchdb.tar.gz "$DOWNLOAD_URL"

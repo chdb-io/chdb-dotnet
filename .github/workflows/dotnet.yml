@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         dotnet-version: ['8.x' ]
-        
+
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET Core 6.x
@@ -37,8 +37,8 @@ jobs:
 #        path: libchdb.so
 #        key: ${{ runner.os }}-libchdb
     - name: Download chdb library
-      if: steps.cache-libchdb.outputs.cache-hit != 'true'
-      run: ./update_libchdb.sh v1.2.0
+#      if: steps.cache-libchdb.outputs.cache-hit != 'true'
+      run: ./update_libchdb.sh
 #    - uses: actions/cache@v3
 #      with:
 #        path: ~/.nuget/packages
