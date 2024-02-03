@@ -1,6 +1,4 @@
-namespace test;
-
-using ChDb;
+namespace ChDb;
 
 [TestClass]
 public class ChDbTest
@@ -117,14 +115,40 @@ public class ChDbTest
     }
 
     [TestMethod]
-    [Ignore("Bugfix is in v1.2.1")]
-    public void SessionTest()
-    {
+    [Ignore("TODO")]
+    public void CsvTest() {
+        var csv = """
+            Name, Age, City
+            John, 25, New York
+            Alice, 30, London
+            Bob, 22, Tokyo
+            Eva, 28, Paris
+            """;
+        var dataPath = "/tmp/chdb/data";
+        Directory.CreateDirectory(dataPath);
+        File.WriteAllText(Path.Combine(".", "test.csv"), csv);
         var session = new Session
         {
             Format = "PrettyCompact",
-            DataPath = "/tmp/chdb/data",
-            UdfPath = "/tmp/chdb/udf",
+            DataPath = dataPath,
+            // UdfPath = "/tmp/chdb/udf",
+            LogLevel = "trace",
+        };
+        var result = session.Execute("SELECT * FROM 'test.csv'", "CSVWithNamesAndTypes");
+        Assert.IsNotNull(result);
+        Assert.AreEqual(4UL, result.RowsRead);
+        Assert.AreEqual(155UL, result.BytesRead);
+        Assert.AreEqual("Name\tString\nAge\tUInt8\nCity\tString\nJohn\t25\tNew York\nAlice\t30\tLondon\nBob\t22\tTokyo\nEva\t28\tParis\n", result.Buf);
+        StringAssert.StartsWith(result.Buf, """"Name","Age","City"""");
+    }
+
+    [TestMethod]
+    [Ignore("Bugfix is in v1.2.1")]
+    public void SessionTest()
+    {
+        using var session = new Session
+        {
+            Format = "PrettyCompact",
             LogLevel = "trace",
         };
         // var r1 = session.Execute("select 1");

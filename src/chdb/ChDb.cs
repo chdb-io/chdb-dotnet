@@ -67,13 +67,17 @@ public static class ChDb
         }
         catch (RuntimeWrappedException e)
         {
-            Console.Error.WriteLine($"Native error {e.Message}", e);
-            throw;
+            var s = e.WrappedException as string;
+            if (s != null)
+                throw new ArgumentException(s);
+            else
+                Console.Error.WriteLine($"Unmanaged error {e.WrappedException}");
         }
         catch (Exception e)
         {
             Console.Error.WriteLine($"Managed error {e.Message}", e);
             throw;
         }
+        return null;
     }
 }

@@ -30,11 +30,6 @@ jobs:
       env:
         DOTNET_NOLOGO: 1
         DOTNET_CLI_TELEMETRY_OPTOUT: 1
-#    - name: Setup dotnet ${{ matrix.dotnet-version }}
-#      uses: actions/setup-dotnet@v3
-#      with:
-#        dotnet-version: ${{ matrix.dotnet-version }}
-
 #    - name: Cache libchdb.so
 #      id: cache-libchdb
 #      uses: actions/cache@v4
@@ -64,9 +59,10 @@ jobs:
         path: TestResults-${{ matrix.dotnet-version }}
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
+    - name: Test chdb-tool
+      run: |
+        dotnet tool install --global chdb-tool --version 0.0.1
+        chdb --help
+        chdb "select version()" PrettyCompact
     - name: Pack
       run: dotnet pack -c Release --include-symbols
-#    - name: Publish the package to nuget.org
-#      run: dotnet nuget push nupkg/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
-#      env:
-#        NUGET_AUTH_TOKEN: ${{ secrets.NUGET_TOKEN }}

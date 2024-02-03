@@ -8,6 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="libchdb.so" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="libchdb.so" CopyToOutputDirectory="PreserveNewest" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
   </ItemGroup>
 </Project>

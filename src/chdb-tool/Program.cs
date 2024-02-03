@@ -35,9 +35,12 @@ try
         return; // TODO behavior changed in 1.2.1
     Console.WriteLine(result.Buf);
     if (!args.Contains("--quiet") && !args.Contains("-q"))
-        Console.WriteLine($"Elapsed: {result.Elapsed} s, read {result.RowsRead} rows, {result.BytesRead} bytes");
-    if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
-        Console.Error.WriteLine("Error message: " + result.ErrorMessage);
+    {
+        Console.WriteLine($"Elapsed: {result.Elapsed} s, read {result.RowsRead} rows, {result.BytesRead} bytes" +
+                          $", {result.RowsRead / result.Elapsed.TotalSeconds:F0} rows/s, {result.BytesRead / result.Elapsed.TotalSeconds:F0} bytes/s");
+        if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
+            Console.Error.WriteLine("Error message: " + result.ErrorMessage);
+    }
 }
 catch (ArgumentException e)
 {
