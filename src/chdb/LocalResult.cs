@@ -23,10 +23,10 @@ public record LocalResult(string? Buf, string? ErrorMessage, ulong RowsRead, ulo
         {
             return TimeSpan.FromSeconds(seconds);
         }
-        catch (OverflowException)
+        catch (OverflowException ex)
         {
             Console.Error.WriteLine($"Overflow: {seconds}"); // TODO linux-x64 bug?
-            return TimeSpan.Zero;
+            throw new OverflowException("wtf, linux bug?", ex);
         }
     }
 
