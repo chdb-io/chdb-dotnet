@@ -38,15 +38,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Cache libchdb.so
-      id: cache-libchdb
-      uses: actions/cache@v4
-      with:
-        path: libchdb.so
-        key: ${{ matrix.rid }}-libchdb
-
     - name: Download chdb library
-      if: steps.cache-libchdb.outputs.cache-hit != 'true'
       run: ./update_libchdb.sh
 
     - name: Setup .NET Core
