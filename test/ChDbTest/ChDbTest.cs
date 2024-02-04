@@ -33,13 +33,10 @@ public class ChDbTest
         Assert.IsNull(r2.Buf);
         Assert.IsNotNull(r2.ErrorMessage);
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            var r3 = ChDb.Query("select version()", "wrong_format");
-            Assert.IsNotNull(r3);
-            Assert.IsNull(r3.Buf);
-            StringAssert.Contains(r3.ErrorMessage, "Unknown output format");
-        }
+        var r3 = ChDb.Query("select version()", "wrong_format");
+        Assert.IsNotNull(r3);
+        Assert.IsNull(r3.Buf);
+        StringAssert.Contains(r3.ErrorMessage, "Unknown output format");
     }
 
     [TestMethod]

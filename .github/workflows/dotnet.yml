@@ -28,8 +28,8 @@ jobs:
         #     - osx-x64
         #     - osx-arm64
        include:
-        #  - os: ubuntu-latest
-        #    rid: linux-x64
+         - os: ubuntu-latest
+           rid: linux-x64
          - os: macos-latest
            rid: osx-x64
          - os: macos-14

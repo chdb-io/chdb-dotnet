@@ -18,7 +18,7 @@ public record LocalResult(string? Buf, string? ErrorMessage, ulong RowsRead, ulo
             var errorMessage = h.error_message == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(h.error_message);
             if (errorMessage != null)
                 return new LocalResult(null, errorMessage, 0, 0, TimeSpan.Zero);
-            
+
             var buf = h.buf == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(h.buf, h.len);
             //var elapsed = FromSecondsSafe(h.elapsed);
             var elapsed = TimeSpan.FromSeconds(h.elapsed);
