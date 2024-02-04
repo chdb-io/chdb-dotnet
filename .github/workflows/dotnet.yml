@@ -38,16 +38,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Download chdb library
-      run: ./update_libchdb.sh
-
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: |
           6.0.x
           8.0.x
-       cache: true
+        # cache: true
 
     - name: Display dotnet version
       run: dotnet --version
@@ -55,11 +52,14 @@ jobs:
     - name: Restore
       run: dotnet restore
 
+    - name: Download chdb library
+      run: ./update_libchdb.sh
+
     - name: Build
-      run: dotnet build --no-restore --configuration Release
+      run: dotnet build --no-restore --configuration Release -r ${{ matrix.rid }}"
 
     - name: Test
-      run: dotnet test -c Release --logger trx --results-directory "TestResults-${{ matrix.rid }}"
+      run: dotnet test -c Release --no-build --logger trx --results-directory "TestResults-${{ matrix.rid }}"
 
     - name: Upload dotnet test results
       uses: actions/upload-artifact@v4
