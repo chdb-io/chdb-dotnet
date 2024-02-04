@@ -54,7 +54,8 @@ public static class ChDb
         {
             var ptr = NativeMethods.query_stable_v2(argv.Length, argv);
             var res = LocalResult.FromPtr(ptr);
-            Marshal.FreeHGlobal(ptr);
+            NativeMethods.free_result_v2(ptr);
+            // Marshal.FreeHGlobal(ptr);
             return res;
         }
         catch (RuntimeWrappedException e)
