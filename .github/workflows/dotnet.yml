@@ -3,6 +3,10 @@
 
 name: dotnet build and test
 
+env:
+  DOTNET_NOLOGO: 1
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
 on:
   push:
     branches: [ "main" ]
@@ -11,58 +15,77 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        dotnet-version: ['8.x' ]
+        # os:
+        #   - ubuntu-latest
+        #   - macos-latest
+        #   - macos-14
+        # rid: # [ "linux-x64", "linux-arm64", "osx-x64", "osx-arm64" ]
+        #     - linux-x64
+        #     - linux-arm64
+        #     - osx-x64
+        #     - osx-arm64
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: macos-latest
+            rid: osx-x64
+          - os: macos-14
+            rid: osx-arm64
 
     steps:
     - uses: actions/checkout@v4
-    - name: Setup .NET Core 6.x
+
+    - name: Cache libchdb.so
+      id: cache-libchdb
+      uses: actions/cache@v4
+      with:
+        path: libchdb.so
+        key: ${{ matrix.rid }}-libchdb
+
+    - name: Download chdb library
+      if: steps.cache-libchdb.outputs.cache-hit != 'true'
+      run: ./update_libchdb.sh
+
+    - name: Setup .NET Core
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: |
           6.0.x
           8.0.x
-#        cache: true
+       cache: true
+
     - name: Display dotnet version
       run: dotnet --version
-      env:
-        DOTNET_NOLOGO: 1
-        DOTNET_CLI_TELEMETRY_OPTOUT: 1
-#    - name: Cache libchdb.so
-#      id: cache-libchdb
-#      uses: actions/cache@v4
-#      with:
-#        path: libchdb.so
-#        key: ${{ runner.os }}-libchdb
-    - name: Download chdb library
-#      if: steps.cache-libchdb.outputs.cache-hit != 'true'
-      run: ./update_libchdb.sh
-#    - uses: actions/cache@v3
-#      with:
-#        path: ~/.nuget/packages
-#        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-#        restore-keys: |
-#          ${{ runner.os }}-nuget-
 
     - name: Restore
       run: dotnet restore
+
     - name: Build
       run: dotnet build --no-restore --configuration Release
+
     - name: Test
-      run: dotnet test --configuration Release --no-build --logger trx --results-directory "TestResults-${{ matrix.dotnet-version }}"
+      run: dotnet test -c Release --logger trx --results-directory "TestResults-${{ matrix.rid }}"
+
     - name: Upload dotnet test results
       uses: actions/upload-artifact@v4
       with:
-        name: dotnet-results-${{ matrix.dotnet-version }}
-        path: TestResults-${{ matrix.dotnet-version }}
+        name: dotnet-results-${{ matrix.rid }}
+        path: TestResults-${{ matrix.rid }}
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
+
     - name: Test chdb-tool
       run: |
-        dotnet tool install --global chdb-tool --version 0.0.1
+        dotnet tool install --add-sources ./nupkg --global chdb-tool --version 0.0.1
         chdb --help
         chdb "select version()" PrettyCompact
     - name: Pack
-      run: dotnet pack -c Release --include-symbols
+      run: |
+        dotnet pack src/chdb/chdb.csproj -c Release --include-symbols -p:PackageID=chdb-${{ matrix.rid }} -r ${{ matrix.rid }}
+        dotnet pack src/chdb-tool/chdb-tool.csproj -c Release -p:PackageID=chdb-tool${{ matrix.rid }} -r ${{ matrix.rid }}
+
+    - name: List artifacts
+      run: ls -l nupkg/*.nupkg
