@@ -18,22 +18,22 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # os:
-        #   - ubuntu-latest
-        #   - macos-latest
-        #   - macos-14
+        #  os:
+        #    - ubuntu-latest
+        #    - macos-latest
+        #    - macos-14
         # rid: # [ "linux-x64", "linux-arm64", "osx-x64", "osx-arm64" ]
         #     - linux-x64
         #     - linux-arm64
         #     - osx-x64
         #     - osx-arm64
-        include:
-          - os: ubuntu-latest
-            rid: linux-x64
-          - os: macos-latest
-            rid: osx-x64
-          - os: macos-14
-            rid: osx-arm64
+       include:
+         - os: ubuntu-latest
+           rid: linux-x64
+         - os: macos-latest
+           rid: osx-x64
+         - os: macos-14
+           rid: osx-arm64
 
     steps:
     - uses: actions/checkout@v4
@@ -56,7 +56,7 @@ jobs:
       run: ./update_libchdb.sh
 
     - name: Build
-      run: dotnet build --no-restore --configuration Release -P:RuntimeIdentifiers=${{ matrix.rid }}
+      run: dotnet build --no-restore --configuration Release
 
     - name: Test
       run: dotnet test -c Release --no-build --logger trx --results-directory "TestResults-${{ matrix.rid }}"
@@ -69,19 +69,20 @@ jobs:
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
 
-    - name: Pack chdb
+    - name: Pack chdb-${{ matrix.rid }}
       run: |
-        dotnet pack src/chdb/chdb.csproj -c Release --include-symbols -p:PackageID=chdb-${{ matrix.rid }} -P:RuntimeIdentifiers=${{ matrix.rid }}
+        dotnet pack src/chdb/chdb.csproj -c Release --include-symbols
 
-#    - name: Pack chdb-tool
-#      run: |
-#        dotnet pack src/chdb-tool/chdb-tool.csproj -c Release -p:PackageID=chdb-tool-${{ matrix.rid }} -P:RuntimeIdentifiers=${{ matrix.rid }}
+    - name: Pack chdb-tool-${{ matrix.rid }}
+      # -p:PackageID=chdb-tool-${{ matrix.rid }} -P:RuntimeIdentifiers=${{ matrix.rid }}
+      run: |
+          dotnet pack src/chdb-tool/chdb-tool.csproj -c Release
 
     - name: List artifacts
       run: ls -l nupkg/*.nupkg
 
     - name: Test chdb-tool
       run: |
-        dotnet tool install --add-source ./nupkg --global chdb-tool --version 0.0.1-alpha
+        dotnet tool install --add-source ./nupkg --global chdb-tool-${{ matrix.rid }} --version 0.0.1-alpha
         chdb --help
         chdb "select version()" PrettyCompact

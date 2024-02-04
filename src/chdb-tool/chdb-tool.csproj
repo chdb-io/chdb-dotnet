@@ -3,12 +3,13 @@
   <ItemGroup>
     <ProjectReference Include="..\chdb\chdb.csproj" />
   </ItemGroup>
-  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>chdb</ToolCommandName>
-    <PackageId>chdb-tool</PackageId>
+    <PackageId Condition="$(IsLinuxX64) == true" >chdb-tool-linux-x64</PackageId>
+    <PackageId Condition="$(IsOsxX64) == true" >chdb-tool-osx-x64</PackageId>
+    <PackageId Condition="$(IsOsxArm64) == true" >chdb-tool-osx-arm64</PackageId>
     <Title>chdb tool</Title>
     <Description>clickhouse local cli as a dotnet tool</Description>
   </PropertyGroup>

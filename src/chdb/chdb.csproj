@@ -2,7 +2,9 @@
 
   <PropertyGroup>
     <InternalsVisibleTo>tests</InternalsVisibleTo>
-    <PackageId>chdb</PackageId>
+    <PackageId Condition="$(IsLinuxX64) == true" >chdb-linux-x64</PackageId>
+    <PackageId Condition="$(IsOsxX64) == true" >chdb-osx-x64</PackageId>
+    <PackageId Condition="$(IsOsxArm64) == true" >chdb-osx-arm64</PackageId>
     <Title>chdb</Title>
     <Description>chdb native bindings for dotnet core</Description>
   </PropertyGroup>
