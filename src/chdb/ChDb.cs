@@ -60,9 +60,9 @@ public static class ChDb
         catch (RuntimeWrappedException e)
         {
             if (e.WrappedException is string s)
-                throw new ArgumentException($"Unmanaged error string {s}");
+                throw new ArgumentException($"Unmanaged string error {s}");
             else
-                throw new ArgumentException($"Unmanaged error {e.WrappedException}");
+                throw new ArgumentException($"Unmanaged unknown error {e.WrappedException}");
         }
         catch (Exception e)
         {
