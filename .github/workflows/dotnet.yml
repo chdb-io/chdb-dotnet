@@ -70,11 +70,6 @@ jobs:
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
 
-    - name: Test chdb-tool
-      run: |
-        dotnet tool install --add-sources ./nupkg --global chdb-tool --version 0.0.1
-        chdb --help
-        chdb "select version()" PrettyCompact
     - name: Pack
       run: |
         dotnet pack src/chdb/chdb.csproj -c Release --include-symbols -p:PackageID=chdb-${{ matrix.rid }} -r ${{ matrix.rid }}
@@ -82,3 +77,9 @@ jobs:
 
     - name: List artifacts
       run: ls -l nupkg/*.nupkg
+
+    - name: Test chdb-tool
+      run: |
+        dotnet tool install --add-sources ./nupkg --global chdb-tool --version 0.0.1
+        chdb --help
+        chdb "select version()" PrettyCompact
