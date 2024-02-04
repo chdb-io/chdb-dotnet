@@ -13,6 +13,23 @@ public record LocalResult(string? Buf, string? ErrorMessage, ulong RowsRead, ulo
     {
     }
 
+    private TimeSpan FromSecondsSafe(double seconds)
+    {
+        // if (seconds is < 0 or double.NaN)
+        //     return TimeSpan.Zero;
+        // if (double.IsInfinity(seconds))
+        //     return TimeSpan.MaxValue;
+        try
+        {
+            return TimeSpan.FromSeconds(seconds);
+        }
+        catch (OverflowException)
+        {
+            Console.Error.WriteLine($$"Overflow: {seconds}"); // TODO linux-x64 bug?
+            return TimeSpan.Zero;
+        }
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     internal class Handle
     {
