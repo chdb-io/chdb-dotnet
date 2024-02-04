@@ -82,6 +82,6 @@ jobs:
 
     - name: Test chdb-tool
       run: |
-        dotnet tool install --add-sources ./nupkg --global chdb-tool --version 0.0.1
+        dotnet tool install --add-source ./nupkg --global chdb-tool --version 0.0.1-alpha
         chdb --help
         chdb "select version()" PrettyCompact
