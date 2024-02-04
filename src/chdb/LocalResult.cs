@@ -4,21 +4,21 @@ namespace ChDb;
 
 public record LocalResult(string? Buf, string? ErrorMessage, ulong RowsRead, ulong BytesRead, TimeSpan Elapsed)
 {
-    internal LocalResult(Handle h) : this(
-        h.buf == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(h.buf, h.len),
-        h.error_message == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(h.error_message),
-        h.rows_read,
-        h.bytes_read,
-        TimeSpan.FromSeconds(h.elapsed))
+    internal static LocalResult? FromPtr(nint ptr)
     {
+        if (ptr == IntPtr.Zero)
+            return null;
+        var h = Marshal.PtrToStructure<Handle>(ptr);
+        if (h == null)
+            return null;
+        var buf = h.buf == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(h.buf, h.len);
+        var errorMessage = h.error_message == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(h.error_message);
+        var elapsed = FromSecondsSafe(h.elapsed);
+        return new LocalResult(buf, errorMessage, h.rows_read, h.bytes_read, elapsed);
     }
 
-    private TimeSpan FromSecondsSafe(double seconds)
+    private static TimeSpan FromSecondsSafe(double seconds)
     {
-        // if (seconds is < 0 or double.NaN)
-        //     return TimeSpan.Zero;
-        // if (double.IsInfinity(seconds))
-        //     return TimeSpan.MaxValue;
         try
         {
             return TimeSpan.FromSeconds(seconds);

@@ -53,22 +53,13 @@ public static class ChDb
         try
         {
             var ptr = NativeMethods.query_stable_v2(argv.Length, argv);
-            if (ptr == IntPtr.Zero)
-                return null;
-            var h = Marshal.PtrToStructure<LocalResult.Handle>(ptr);
-            if (h == null)
-            {
-                //throw new ArgumentException($"Invalid query or format\nQUERY\n'{LookUpArg(argv, "query")}'\nFORMAT\n'{LookUpArg(argv, "output-format")}'");
-                return null;
-            }
-            var res = new LocalResult(h);
+            var res = LocalResult.FromPtr(ptr);
             Marshal.FreeHGlobal(ptr);
             return res;
         }
         catch (RuntimeWrappedException e)
         {
-            var s = e.WrappedException as string;
-            if (s != null)
+            if (e.WrappedException is string s)
                 throw new ArgumentException(s);
             else
                 Console.Error.WriteLine($"Unmanaged error {e.WrappedException}");
