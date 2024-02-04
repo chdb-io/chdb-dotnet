@@ -73,9 +73,9 @@ jobs:
       run: |
         dotnet pack src/chdb/chdb.csproj -c Release --include-symbols -p:PackageID=chdb-${{ matrix.rid }} -P:RuntimeIdentifiers=${{ matrix.rid }}
 
-    - name: Pack chdb-tool
-      run: |
-        dotnet pack src/chdb-tool/chdb-tool.csproj -c Release -p:PackageID=chdb-tool-${{ matrix.rid }} -P:RuntimeIdentifiers=${{ matrix.rid }}
+#    - name: Pack chdb-tool
+#      run: |
+#        dotnet pack src/chdb-tool/chdb-tool.csproj -c Release -p:PackageID=chdb-tool-${{ matrix.rid }} -P:RuntimeIdentifiers=${{ matrix.rid }}
 
     - name: List artifacts
       run: ls -l nupkg/*.nupkg
