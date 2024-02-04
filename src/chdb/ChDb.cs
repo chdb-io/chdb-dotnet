@@ -30,7 +30,7 @@ public static class ChDb
             "clickhouse",
             "--multiquery",
             $"--query={query}",
-            $"--output-format={format ?? "TabSeparated"}",
+            $"--output-format={format ?? "TabSeparated"}"
         };
         return Execute(argv);
     }
@@ -60,15 +60,13 @@ public static class ChDb
         catch (RuntimeWrappedException e)
         {
             if (e.WrappedException is string s)
-                throw new ArgumentException(s);
+                throw new ArgumentException($"Unmanaged error string {s}");
             else
-                Console.Error.WriteLine($"Unmanaged error {e.WrappedException}");
+                throw new ArgumentException($"Unmanaged error {e.WrappedException}");
         }
         catch (Exception e)
         {
-            Console.Error.WriteLine($"Managed error {e.Message}", e);
-            throw;
+            throw new Exception("Managed error", e);
         }
-        return null;
     }
 }

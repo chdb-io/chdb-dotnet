@@ -34,7 +34,6 @@ public record LocalResult(string? Buf, string? ErrorMessage, ulong RowsRead, ulo
         }
         catch (OverflowException ex)
         {
-            Console.Error.WriteLine($"Overflow: {seconds}"); // TODO linux-x64 bug?
             throw new OverflowException($"duration {seconds} is too long. wtf, linux bug?", ex);
         }
     }
