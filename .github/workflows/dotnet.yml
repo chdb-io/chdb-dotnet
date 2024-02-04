@@ -12,21 +12,18 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'The reason for running the workflow'
+        required: true
+        default: 'Manual run'
 
 jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        #  os:
-        #    - ubuntu-latest
-        #    - macos-latest
-        #    - macos-14
-        # rid: # [ "linux-x64", "linux-arm64", "osx-x64", "osx-arm64" ]
-        #     - linux-x64
-        #     - linux-arm64
-        #     - osx-x64
-        #     - osx-arm64
        include:
          - os: ubuntu-latest
            rid: linux-x64
@@ -36,6 +33,11 @@ jobs:
            rid: osx-arm64
 
     steps:
+    - name: 'Print manual run reason'
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      run: |
+        echo 'Reason: ${{ github.event.inputs.reason }}'
+
     - uses: actions/checkout@v4
 
     - name: Setup .NET Core
@@ -44,7 +46,9 @@ jobs:
         dotnet-version: |
           6.0.x
           8.0.x
-        # cache: true
+        source-url: https://nuget.pkg.github.com/vilinski/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
     - name: Display dotnet version
       run: dotnet --version
@@ -86,3 +90,6 @@ jobs:
         dotnet tool install --add-source ./nupkg --global chdb-tool-${{ matrix.rid }} --version 0.0.1-alpha
         chdb --help
         chdb "select version()" PrettyCompact
+
+    - name: Publish the package to GPR
+      run: dotnet nuget push nupkg/*.nupkg

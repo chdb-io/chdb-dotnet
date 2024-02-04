@@ -7,39 +7,19 @@ public record LocalResult(string? Buf, string? ErrorMessage, ulong RowsRead, ulo
     internal static LocalResult? FromPtr(nint ptr)
     {
         Handle? h = null;
-        try
-        {
-            if (ptr == IntPtr.Zero)
-                return null;
-            h = Marshal.PtrToStructure<Handle>(ptr);
-            if (h == null)
-                return null;
-            // let's check the theory
-            var errorMessage = h.error_message == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(h.error_message);
-            if (errorMessage != null)
-                return new LocalResult(null, errorMessage, 0, 0, TimeSpan.Zero);
+        if (ptr == IntPtr.Zero)
+            return null;
+        h = Marshal.PtrToStructure<Handle>(ptr);
+        if (h == null)
+            return null;
 
-            var buf = h.buf == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(h.buf, h.len);
-            //var elapsed = FromSecondsSafe(h.elapsed);
-            var elapsed = TimeSpan.FromSeconds(h.elapsed);
-            return new LocalResult(buf, errorMessage, h.rows_read, h.bytes_read, elapsed);
-        }
-        catch (OverflowException ex)
-        {
-            throw new OverflowException($"duration {h!.elapsed} is too long. wtf, linux bug? \n{h}", ex);
-        }
-    }
+        var errorMessage = h.error_message == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(h.error_message);
+        if (errorMessage != null)
+            return new LocalResult(null, errorMessage, 0, 0, TimeSpan.Zero);
 
-    private static TimeSpan FromSecondsSafe(double seconds)
-    {
-        try
-        {
-            return TimeSpan.FromSeconds(seconds);
-        }
-        catch (OverflowException ex)
-        {
-            throw new OverflowException($"duration {seconds} is too long. wtf, linux bug?", ex);
-        }
+        var buf = h.buf == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(h.buf, h.len);
+        var elapsed = TimeSpan.FromSeconds(h.elapsed);
+        return new LocalResult(buf, errorMessage, h.rows_read, h.bytes_read, elapsed);
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -53,6 +33,6 @@ public record LocalResult(string? Buf, string? ErrorMessage, ulong RowsRead, ulo
         internal ulong bytes_read;
         internal nint error_message;
 
-        public override string ToString() => $"Handle{{buf={buf}, len={len}, _vec={_vec}, elapsed={elapsed}, rows_read={rows_read}, bytes_read={bytes_read}, error_message={error_message}}}";
+        public override string ToString() => $"Handle{{\n\tbuf={buf},\n\tlen={len},\n\t_vec={_vec},\n\telapsed={elapsed},\n\trows_read={rows_read},\n\tbytes_read={bytes_read},\n\terror_message={error_message}}}";
     }
 }
