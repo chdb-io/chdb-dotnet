@@ -39,7 +39,7 @@ public record LocalResult(string? Buf, string? ErrorMessage, ulong RowsRead, ulo
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal record Handle
+    internal class Handle
     {
         internal nint buf;
         internal int len;
@@ -48,5 +48,7 @@ public record LocalResult(string? Buf, string? ErrorMessage, ulong RowsRead, ulo
         internal ulong rows_read;
         internal ulong bytes_read;
         internal nint error_message;
+
+        public override string ToString() => $"Handle{{buf={buf}, len={len}, _vec={_vec}, elapsed={elapsed}, rows_read={rows_read}, bytes_read={bytes_read}, error_message={error_message}}}";
     }
 }
