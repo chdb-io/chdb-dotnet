@@ -16,8 +16,11 @@ A .NET Core binding for [chdb](https://doc.chdb.io) library.
 ### Installation
 
 ```bash
-dotnet add package chdb
+#dotnet add package chdb-<OS>-<ARCH>
+dotnet add package chdb-linux-x64
 ```
+OS supported: linux, osx
+ARCH supported: x64, arm64
 
 ### Usage
 
@@ -27,7 +30,8 @@ using ChDb;
 var result = ChDb.Query("select version()");
 Console.WriteLine(result.Buf);
 // 23.10.1.1
-var result = ChDb.Query("select * from system.formats where is_output = 1", "PrettyCompact");
+var s = new Session();
+var result = s.Query("select * from system.formats where is_output = 1", "PrettyCompact");
 // ┌─name───────────────────────────────────────┬─is_input─┬─is_output─┬─supports_parallel_parsing─┬─supports_parallel_formatting─┐
 // │ Prometheus                                 │        0 │         1 │                         0 │                            0 │
 // │ PostgreSQLWire                             │        0 │         1 │                         0 │                            0 │
@@ -35,7 +39,7 @@ var result = ChDb.Query("select * from system.formats where is_output = 1", "Pre
 // │ JSONEachRowWithProgress                    │        0 │         1 │                         0 │                            0 │
 // │ ODBCDriver2                                │        0 │         1 │                         0 │                            0 │
 // ...
-var result = ChDb.Query("DESCRIBE s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/house_parquet/house_0.parquet')");
+var result = s.Query("DESCRIBE s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/house_parquet/house_0.parquet')");
 Console.WriteLine(result.Buf);
 ```
 
@@ -54,8 +58,12 @@ Actually you better install the clickhouse client and run `clickhouse local`, bu
 Requires .NET SDK 6.0 or later.
 
 ```bash
-dotnet tool install --global chdb-tool
+#dotnet tool install --global chdb-tool-<OS>-<ARCH>
+dotnet tool install --global chdb-tool-linux-x64
 ```
+
+OS supported: linux, osx
+ARCH supported: x64, arm64
 
 ### Usage
 

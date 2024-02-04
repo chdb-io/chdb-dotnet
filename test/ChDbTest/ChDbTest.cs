@@ -137,7 +137,7 @@ public class ChDbTest
             DataPath = dataPath,
             LogLevel = "trace",
         };
-        var result = session.Execute("SELECT * FROM 'test.csv'", "CSVWithNamesAndTypes");
+        var result = session.Query("SELECT * FROM 'test.csv'", "CSVWithNamesAndTypes");
         Assert.IsNotNull(result);
         Assert.AreEqual(4UL, result.RowsRead);
         Assert.AreEqual(155UL, result.BytesRead);
@@ -150,52 +150,52 @@ public class ChDbTest
     [TestMethod]
     public void SessionTest()
     {
-        using var session = new Session
+        using var s = new Session
         {
             Format = "PrettyCompact",
             LogLevel = "trace",
         };
         var nr = "xyz";
 
-        Assert.IsTrue(session.Execute($"SHOW DATABASES")?.Buf?.Contains("_local")); // there is _local database instead of default
-        Assert.AreEqual("", session.Execute($"SHOW TABLES")?.Buf);
-        StringAssert.Contains(session.Execute($"SELECT currentDatabase()")?.Buf, "_local");
+        Assert.IsTrue(s.Query($"SHOW DATABASES")?.Buf?.Contains("_local")); // there is _local database instead of default
+        Assert.AreEqual("", s.Query($"SHOW TABLES")?.Buf);
+        StringAssert.Contains(s.Query($"SELECT currentDatabase()")?.Buf, "_local");
 
-        var r1 = session.Execute($"DROP DATABASE IF EXISTS db_{nr}");
+        var r1 = s.Query($"DROP DATABASE IF EXISTS db_{nr}");
         Assert.IsNotNull(r1);
         Assert.IsNull(r1.Buf);
         Assert.IsNull(r1.ErrorMessage);
 
-        var r2 = session.Execute($"CREATE DATABASE IF NOT EXISTS db_{nr} ENGINE = Atomic");
+        var r2 = s.Query($"CREATE DATABASE IF NOT EXISTS db_{nr} ENGINE = Atomic");
         Assert.IsNotNull(r2);
         Assert.IsNull(r2.Buf);
         Assert.IsNull(r2.ErrorMessage);
 
-        var r3 = session.Execute($"CREATE TABLE IF NOT EXISTS db_{nr}.log_table_{nr} (x String, y Int) ENGINE = Log;");
+        var r3 = s.Query($"CREATE TABLE IF NOT EXISTS db_{nr}.log_table_{nr} (x String, y Int) ENGINE = Log;");
         Assert.IsNotNull(r3);
         Assert.IsNull(r3.Buf);
         Assert.IsNull(r3.ErrorMessage);
 
-        var r4 = session.Execute($"INSERT INTO db_{nr}.log_table_{nr} VALUES ('a', 1), ('b', 3), ('c', 2), ('d', 5);");
+        var r4 = s.Query($"INSERT INTO db_{nr}.log_table_{nr} VALUES ('a', 1), ('b', 3), ('c', 2), ('d', 5);");
         Assert.IsNotNull(r4);
         Assert.IsNull(r4.Buf);
         Assert.IsNull(r4.ErrorMessage);
 
-        var r5 = session.Execute($"SELECT * FROM db_{nr}.log_table_{nr}", "TabSeparatedWithNames");
+        var r5 = s.Query($"SELECT * FROM db_{nr}.log_table_{nr}", "TabSeparatedWithNames");
         Assert.IsNotNull(r5);
         Assert.AreEqual("x\ty\na\t1\nb\t3\nc\t2\nd\t5\n", r5.Buf);
         Assert.IsNull(r5.ErrorMessage);
 
-        var r6 = session.Execute($"CREATE VIEW db_{nr}.view_{nr} AS SELECT * FROM db_{nr}.log_table_{nr} LIMIT 4;");
+        var r6 = s.Query($"CREATE VIEW db_{nr}.view_{nr} AS SELECT * FROM db_{nr}.log_table_{nr} LIMIT 4;");
         Assert.IsNotNull(r6);
         Assert.IsNull(r6.Buf);
         Assert.IsNull(r6.ErrorMessage);
 
-        var r7 = session.Execute($"SELECT * FROM db_{nr}.view_{nr}", "TabSeparatedWithNames");
+        var r7 = s.Query($"SELECT * FROM db_{nr}.view_{nr}", "TabSeparatedWithNames");
         Assert.IsNotNull(r7);
         Assert.AreEqual("x\ty\na\t1\nb\t3\nc\t2\nd\t5\n", r7.Buf);
         Assert.IsNull(r7.ErrorMessage);
 
-        session.Execute($"DROP DATABASE IF EXISTS db_{nr}");
+        s.Query($"DROP DATABASE IF EXISTS db_{nr}");
     }
 }

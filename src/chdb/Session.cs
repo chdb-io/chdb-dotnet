@@ -14,7 +14,7 @@ public record Session : IDisposable
             Directory.Delete(DataPath, true);
     }
 
-    public LocalResult? Execute(string query, string? format = null)
+    public LocalResult? Query(string query, string? format = null)
     {
         if (IsTemp && DataPath is null) {
             DataPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "chdb_");
