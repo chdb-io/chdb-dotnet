@@ -16,7 +16,8 @@ public record Session : IDisposable
 
     public LocalResult? Query(string query, string? format = null)
     {
-        if (IsTemp && DataPath is null) {
+        if (IsTemp && DataPath is null)
+        {
             DataPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "chdb_");
         }
 

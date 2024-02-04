@@ -120,7 +120,8 @@ public class ChDbTest
     }
 
     [TestMethod]
-    public void CsvTest() {
+    public void CsvTest()
+    {
         var csv = """
             Name, Age, City
             John, 25, New York
