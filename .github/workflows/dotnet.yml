@@ -91,5 +91,8 @@ jobs:
         chdb --help
         chdb "select version()" PrettyCompact
 
-    - name: Publish the package to GPR
-      run: dotnet nuget push nupkg/*.nupkg
+    # - name: Publish the package to GPR
+    #   run: dotnet nuget push nupkg/*.nupkg
+
+    - name: Publish the package to nuget.org
+      run: dotnet nuget push nupkg/*.nupkg --api-key "${{ secrets.NUGET_AUTH_TOKEN }}" --source https://api.nuget.org/v3/index.json
