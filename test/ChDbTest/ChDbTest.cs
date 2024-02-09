@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices;
-
 namespace ChDb;
 
 [TestClass]
@@ -160,9 +158,12 @@ public class ChDbTest
         };
         var nr = "xyz";
 
-        Assert.IsTrue(s.Query($"SHOW DATABASES")?.Buf?.Contains("_local")); // there is _local database instead of default
-        Assert.AreEqual("", s.Query($"SHOW TABLES")?.Buf);
+        Assert.IsNull(s.Query($"select version()")?.ErrorMessage);
+
+        // chdb creates "_local" database instead of "default" in clickhouse
+        StringAssert.Contains(s.Query($"SHOW DATABASES")?.Buf, "_local");
         StringAssert.Contains(s.Query($"SELECT currentDatabase()")?.Buf, "_local");
+        Assert.AreEqual("", s.Query($"SHOW TABLES")?.Buf);
 
         var r1 = s.Query($"DROP DATABASE IF EXISTS db_{nr}");
         Assert.IsNotNull(r1);

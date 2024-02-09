@@ -80,7 +80,7 @@ jobs:
     - name: Pack chdb-tool-${{ matrix.rid }}
       # -p:PackageID=chdb-tool-${{ matrix.rid }} -P:RuntimeIdentifiers=${{ matrix.rid }}
       run: |
-          dotnet pack src/chdb-tool/chdb-tool.csproj -c Release
+          dotnet pack src/chdb-tool/chdb-tool.csproj -c Release --with-sources
 
     - name: List artifacts
       run: ls -l nupkg/*.nupkg
@@ -94,5 +94,5 @@ jobs:
     # - name: Publish the package to GPR
     #   run: dotnet nuget push nupkg/*.nupkg
 
-    - name: Publish the package to nuget.org
-      run: dotnet nuget push nupkg/*.nupkg --api-key "${{ secrets.NUGET_AUTH_TOKEN }}" --source https://api.nuget.org/v3/index.json
+    # - name: Publish the package to nuget.org
+    #   run: dotnet nuget push nupkg/*.nupkg --api-key "${{ secrets.NUGET_AUTH_TOKEN }}" --source https://api.nuget.org/v3/index.json

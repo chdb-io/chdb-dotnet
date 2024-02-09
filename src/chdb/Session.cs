@@ -2,10 +2,21 @@ namespace ChDb;
 
 public record Session : IDisposable
 {
+    /// <summary>
+    /// Output format for queries if not explicitely specified. Default is TabSeparated
+    /// </summary>
     public string? Format { get; init; }
-    public string? DataPath { get; set; }
-    // public string? UdfPath { get; init; }
+    /// <summary>
+    /// Path to the ClickHouse data directory. If not set, a temporary directory will be used.
+    /// </summary>
+    public string? DataPath { get; set; } = Path.Combine(Path.GetTempPath(), "chdb_");
+    /// <summary>
+    /// Query Log Level.
+    /// </summary>
     public string? LogLevel { get; init; }
+    /// <summary>
+    /// Whether to delete the data directory on dispose. Default is true.
+    /// </summary>
     public bool IsTemp { get; init; } = true;
 
     public void Dispose()
@@ -14,11 +25,17 @@ public record Session : IDisposable
             Directory.Delete(DataPath, true);
     }
 
+    /// <summary>
+    /// Execute a query and return the result.
+    /// </summary>
+    /// <param name="query">SQL query</param>
+    /// <param name="format">Output format, optional.</param>
+    /// <returns>Query result</returns>
     public LocalResult? Query(string query, string? format = null)
     {
         if (IsTemp && DataPath is null)
         {
-            DataPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "chdb_");
+            DataPath = Path.Combine(Path.GetTempPath(), "chdb_");
         }
 
         var argv = new[] {

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <InternalsVisibleTo>tests</InternalsVisibleTo>
     <PackageId Condition="$(IsLinuxX64) == true" >chdb-linux-x64</PackageId>
+    <PackageId Condition="$(IsLinuxArm64) == true" >chdb-linux-arm64</PackageId>
     <PackageId Condition="$(IsOsxX64) == true" >chdb-osx-x64</PackageId>
     <PackageId Condition="$(IsOsxArm64) == true" >chdb-osx-arm64</PackageId>
     <Title>chdb</Title>
@@ -10,6 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="libchdb.so" CopyToOutputDirectory="PreserveNewest" Condition="$([MSBuild]::IsOSPlatform('OSX')) OR $([MSBuild]::IsOSPlatform('Linux'))" />
+    <None Update="libchdb.so" CopyToOutputDirectory="PreserveNewest" Condition="$(IsLinuxX64) == true OR $(IsLinuxArm64) == true OR $(IsOsxX64) == true OR $(IsOsxArm64) == true" />
   </ItemGroup>
 </Project>

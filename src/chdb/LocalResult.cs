@@ -2,6 +2,14 @@ using System.Runtime.InteropServices;
 
 namespace ChDb;
 
+/// <summary>
+/// The query result.
+/// </summary>
+/// <param name="Buf">Result string.</param>
+/// <param name="ErrorMessage">Error message if occured.</param>
+/// <param name="RowsRead">Number of rows read</param>
+/// <param name="BytesRead">Number of bytes read</param>
+/// <param name="Elapsed">Query time elapsed, in seconds.</param>
 public record LocalResult(string? Buf, string? ErrorMessage, ulong RowsRead, ulong BytesRead, TimeSpan Elapsed)
 {
     internal static LocalResult? FromPtr(nint ptr)

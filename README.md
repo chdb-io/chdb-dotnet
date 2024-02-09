@@ -3,25 +3,48 @@
 ![GitHub License](https://img.shields.io/github/license/chdb-io/chdb-dotnet)
 ![example workflow](https://github.com/chdb-io/chdb-dotnet/actions/workflows/dotnet.yml/badge.svg)
 
+<table>
+    <thead>
+        <tr>
+            <th>OS</th>
+            <th>Arch</th>
+            <th>chdb</th>
+            <th>downloads</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td rowspan="2">OSX</td>
+            <td>arm64</td>
+            <td><img src="https://img.shields.io/nuget/vpre/chdb-osx-arm64"></td>
+            <td><img src="https://img.shields.io/nuget/dt/chdb-osx-arm64"></td>
+        </tr>
+        <tr>
+            <td>x64</td>
+            <td><img src="https://img.shields.io/nuget/vpre/chdb-osx-x64"></td>
+            <td><img src="https://img.shields.io/nuget/dt/chdb-osx-x64"></td>
+        </tr>
+        <tr>
+            <td rowspan="2">Linux</td>
+            <td>arm64</td>
+            <td><img src="https://img.shields.io/nuget/vpre/chdb-linux-arm64"></td>
+            <td><img src="https://img.shields.io/nuget/dt/chdb-linux-arm64"></td>
+        </tr>
+        <tr>
+            <td>x64</td>
+            <td><img src="https://img.shields.io/nuget/vpre/chdb-linux-x64"></td>
+            <td><img src="https://img.shields.io/nuget/dt/chdb-linux-x64"></td>
+        </tr>
+    </tbody>
+</table>
 
 ## chdb NuGet package
 
-![NuGet Version](https://img.shields.io/nuget/vpre/chdb)
-![NuGet Downloads](https://img.shields.io/nuget/dt/chdb)
-
-
 A .NET Core binding for [chdb](https://doc.chdb.io) library.
 
-
-### Installation
-
 ```bash
-#dotnet add package chdb-<OS>-<ARCH>
-dotnet add package chdb-linux-x64
+dotnet add package chdb
 ```
-OS supported: linux, osx
-ARCH supported: x64, arm64
-
 ### Usage
 
 ```csharp
