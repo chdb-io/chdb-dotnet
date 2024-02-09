@@ -51,7 +51,7 @@ dotnet add package chdb
 using ChDb;
 
 var result = ChDb.Query("select version()");
-Console.WriteLine(result.Buf);
+Console.WriteLine(result.Text);
 // 23.10.1.1
 var s = new Session();
 var result = s.Query("select * from system.formats where is_output = 1", "PrettyCompact");
@@ -63,7 +63,7 @@ var result = s.Query("select * from system.formats where is_output = 1", "Pretty
 // │ ODBCDriver2                                │        0 │         1 │                         0 │                            0 │
 // ...
 var result = s.Query("DESCRIBE s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/house_parquet/house_0.parquet')");
-Console.WriteLine(result.Buf);
+Console.WriteLine(result.Text);
 ```
 
 ## chdb-tool

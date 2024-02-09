@@ -33,7 +33,7 @@ try
     var result = ChDb.ChDb.Query(args[0], args.Length > 1 && !args[1].StartsWith('-') ? args[1] : "PrettyCompact");
     if (result == null)
         return; // TODO behavior changed in 1.2.1
-    Console.WriteLine(result.Buf);
+    Console.WriteLine(result.Text);
     if (!args.Contains("--quiet") && !args.Contains("-q"))
     {
         Console.WriteLine($"Elapsed: {result.Elapsed} s, read {result.RowsRead} rows, {result.BytesRead} bytes" +

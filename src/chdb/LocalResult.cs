@@ -5,13 +5,18 @@ namespace ChDb;
 /// <summary>
 /// The query result.
 /// </summary>
-/// <param name="Buf">Result string.</param>
+/// <param name="Buf">Result buffer.</param>
 /// <param name="ErrorMessage">Error message if occured.</param>
 /// <param name="RowsRead">Number of rows read</param>
 /// <param name="BytesRead">Number of bytes read</param>
 /// <param name="Elapsed">Query time elapsed, in seconds.</param>
-public record LocalResult(string? Buf, string? ErrorMessage, ulong RowsRead, ulong BytesRead, TimeSpan Elapsed)
+public record LocalResult(byte[]? Buf, string? ErrorMessage, ulong RowsRead, ulong BytesRead, TimeSpan Elapsed)
 {
+    /// <summary>
+    /// By text formats contains a result text.
+    /// </summary>
+    public string? Text => Buf == null ? null : System.Text.Encoding.UTF8.GetString(Buf);
+
     internal static LocalResult? FromPtr(nint ptr)
     {
         Handle? h = null;
@@ -25,8 +30,11 @@ public record LocalResult(string? Buf, string? ErrorMessage, ulong RowsRead, ulo
         if (errorMessage != null)
             return new LocalResult(null, errorMessage, 0, 0, TimeSpan.Zero);
 
-        var buf = h.buf == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(h.buf, h.len);
         var elapsed = TimeSpan.FromSeconds(h.elapsed);
+
+        var buf = h.buf == IntPtr.Zero ? null : new byte[h.len];
+        if (buf != null)
+            Marshal.Copy(h.buf, buf, 0, h.len);
         return new LocalResult(buf, errorMessage, h.rows_read, h.bytes_read, elapsed);
     }
 
