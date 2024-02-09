@@ -60,7 +60,7 @@ jobs:
     - name: Download chdb library
       run: |
         ./update_libchdb.sh
-        ls -lahS src/chdb
+        ls -lahS src/chdb/libchdb*
 
     - name: Build
       run: dotnet build --no-restore --configuration Release
@@ -86,8 +86,8 @@ jobs:
       # env:
       #   NUGET_AUTH_TOKEN: ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
 
-    - name: Publish chdb-${{ matrix.rid }} package to GPR
-      run: dotnet nuget push nupkg/chdb-${{ matrix.rid }}.*.nupkg --skip-duplicate --api-key ${{ secrets.PACKAGES_TOKEN }} --source https://nuget.pkg.github.com/chdb-io/index.json
+    # - name: Publish chdb-${{ matrix.rid }} package to GPR
+      # run: dotnet nuget push nupkg/chdb-${{ matrix.rid }}.*.nupkg --skip-duplicate --api-key ${{ secrets.PACKAGES_TOKEN }} --source https://nuget.pkg.github.com/chdb-io/index.json
       #   env:
       #     NUGET_AUTH_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
 
