@@ -21,7 +21,7 @@ on:
 
 jobs:
   build_chdb_native:
-    name: Build chdb patform dependent nugets
+    name: Build chdb-${{ matrix.rid }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -58,7 +58,9 @@ jobs:
       run: dotnet restore
 
     - name: Download chdb library
-      run: ./update_libchdb.sh
+      run: |
+        ./update_libchdb.sh
+        ls -lahS src/chdb
 
     - name: Build
       run: dotnet build --no-restore --configuration Release
@@ -75,7 +77,9 @@ jobs:
       if: ${{ always() }}
 
     - name: Pack chdb-${{ matrix.rid }}
-      run: dotnet pack src/chdb/chdb.csproj -c Release --include-symbols
+      run: |
+        dotnet pack src/chdb/chdb.csproj -c Release --include-symbols
+        ls -lahS nupkg
 
     # - name: Publish chdb-${{ matrix.rid }} package to GPR
     #   run: dotnet nuget push nupkg/chdb-${{ matrix.rid }}.*.nupkg --skip-duplicate --api-key ${{ secrets.PACKAGES_TOKEN }} --source https://nuget.pkg.github.com/chdb-io/index.json
@@ -95,13 +99,15 @@ jobs:
     #     path: nupkg
 
   build_chdb:
-    name: Build chdb meta package
+    name: Build chdb
     needs: build_chdb_native
     runs-on: ubuntu-latest
     steps:
 
     - name: Pack
-      run: dotnet pack src/chdb-meta/chdb-meta.csproj -c Release --include-symbols
+      run: |
+        dotnet pack src/chdb-meta/chdb-meta.csproj -c Release --include-symbols
+        ls -lahS nupkg
 
     - name: Publish the package to nuget.org
       run: dotnet nuget push nupkg/chdb.*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json
@@ -115,7 +121,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Pack
-        run: dotnet pack src/chdb-tool/chdb-tool.csproj -c Release --include-symbols
+        run: |
+          dotnet pack src/chdb-tool/chdb-tool.csproj -c Release --include-symbols
+          ls -lahS nupkg
 
       - name: Publish
         run: dotnet nuget push nupkg/chdb-tool.*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json
