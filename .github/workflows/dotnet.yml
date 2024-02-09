@@ -77,10 +77,10 @@ jobs:
     - name: Pack chdb-${{ matrix.rid }}
       run: dotnet pack src/chdb/chdb.csproj -c Release --include-symbols
 
-    - name: Publish chdb-${{ matrix.rid }} package to GPR
-      run: dotnet nuget push nupkg/chdb-${{ matrix.rid }}.*.nupkg --skip-duplicate --api-key ${{ secrets.PACKAGES_TOKEN }} --source https://nuget.pkg.github.com/chdb-io/index.json
-      env:
-        NUGET_AUTH_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+    # - name: Publish chdb-${{ matrix.rid }} package to GPR
+    #   run: dotnet nuget push nupkg/chdb-${{ matrix.rid }}.*.nupkg --skip-duplicate --api-key ${{ secrets.PACKAGES_TOKEN }} --source https://nuget.pkg.github.com/chdb-io/index.json
+    #   env:
+    #     NUGET_AUTH_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
 
     - name: Publish the package to nuget.org
       run: dotnet nuget push nupkg/*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
