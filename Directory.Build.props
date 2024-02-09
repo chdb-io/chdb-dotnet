@@ -28,6 +28,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
+        <IsGithubActions Condition="'$(GITHUB_ACTIONS)' == 'true'">true</IsGithubActions>
         <IsLinuxX64 Condition="$([MSBuild]::IsOsPlatform('Linux')) And $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) == X64">true</IsLinuxX64>
         <IsLinuxArm64 Condition="$([MSBuild]::IsOsPlatform('Linux')) And $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) == Arm64">true</IsLinuxArm64>
         <IsOsxArm64 Condition="$([MSBuild]::IsOsPlatform('OSX')) And $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) == Arm64">true</IsOsxArm64>

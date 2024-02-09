@@ -20,7 +20,7 @@ on:
         default: 'Manual run'
 
 jobs:
-  build:
+  build_chdb_native:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -76,27 +76,51 @@ jobs:
     - name: Pack chdb-${{ matrix.rid }}
       run: dotnet pack src/chdb/chdb.csproj -c Release --include-symbols
 
-    # - name: Publish the package to GPR
-    #   run: dotnet nuget push nupkg/*.nupkg --skip-duplicate
+    - name: Publish chdb-${{ matrix.rid }} package to GPR
+      run: dotnet nuget push nupkg/chdb-${{ matrix.rid }}.*.nupkg --skip-duplicate
+      env:
+        NUGET_AUTH_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
 
-    # - name: Publish the package to nuget.org
-    #   run: dotnet nuget push nupkg/*.nupkg --skip-duplicate --api-key "${{ secrets.NUGET_AUTH_TOKEN }}" --source https://api.nuget.org/v3/index.json
+    - name: Publish the package to nuget.org
+      run: dotnet nuget push nupkg/*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
 
-    - name: Pack chdb-tool-${{ matrix.rid }}
-      # -p:PackageID=chdb-tool-${{ matrix.rid }} -P:RuntimeIdentifiers=${{ matrix.rid }}
-      run: dotnet pack src/chdb-tool/chdb-tool.csproj -c Release
+    # - name: Upload nupkg
+    #   #run: ls -l nupkg/*.nupkg
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: dotnet-nupkg-${{ matrix.rid }}
+    #     path: nupkg
 
-    - name: Upload nupkg
-      #run: ls -l nupkg/*.nupkg
-      uses: actions/upload-artifact@v4
-      with:
-        name: dotnet-nupkg-${{ matrix.rid }}
-        path: nupkg
+  build_chdb:
+    needs: build_chdb_native
+    runs-on: ubuntu-latest
+    steps:
 
-    - name: Test chdb-tool
-      run: |
-        dotnet tool install --add-source ./nupkg --global chdb-tool-${{ matrix.rid }} --version 0.0.1-alpha
-        chdb --help
-        chdb "select version()" PrettyCompact
+    - name: Pack
+      run: dotnet pack src/chdb-meta/chdb-meta.csproj -c Release --include-symbols
+
+    - name: Publish the package to nuget.org
+      run: dotnet nuget push nupkg/chdb.*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
 
 
+  build_tool:
+    needs: build_chdb
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pack
+        run: dotnet pack src/chdb-tool/chdb-tool.csproj -c Release --include-symbols
+
+      - name: Publish
+        run: dotnet nuget push nupkg/chdb-tool.*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
+
+      - name: Test chdb-tool
+        run: |
+          dotnet tool install --add-source ./nupkg --global chdb-tool-${{ matrix.rid }} --version 0.0.1-alpha.01
+          chdb --help
+          chdb "select version()" PrettyCompact

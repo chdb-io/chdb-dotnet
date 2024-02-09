@@ -1,5 +1,7 @@
 # chdb
 
+A .NET Core binding for [chdb](https://doc.chdb.io) library.
+
 ![GitHub License](https://img.shields.io/github/license/chdb-io/chdb-dotnet)
 ![example workflow](https://github.com/chdb-io/chdb-dotnet/actions/workflows/dotnet.yml/badge.svg)
 
@@ -38,14 +40,11 @@
     </tbody>
 </table>
 
-## chdb NuGet package
-
-A .NET Core binding for [chdb](https://doc.chdb.io) library.
+### Usage
 
 ```bash
 dotnet add package chdb
 ```
-### Usage
 
 ```csharp
 using ChDb;

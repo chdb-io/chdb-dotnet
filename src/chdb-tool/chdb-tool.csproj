@@ -1,15 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\chdb\chdb.csproj" />
+    <ProjectReference Include="..\chdb\chdb.csproj" Condition="$(IsGithubAction) == true" />
+    <PackageReference Include="chdb" Version="$(Version)"  Condition="$(IsGithubAction) != true" />
+
+    <!-- <PackageReference Include="chdb-linux-x64" Version="$(Version)"  Condition="$(IsLinuxX64) == true"/>
+    <PackageReference Include="chdb-linux-arm64" Version="$(Version)"  Condition="$(IsLinuxArm64) == true"/>
+    <PackageReference Include="chdb-osx-x64" Version="$(Version)"  Condition="$(IsOsxX64) == true"/>
+    <PackageReference Include="chdb-osx-arm64" Version="$(Version)"  Condition="$(IsOsxArm64) == true"/> -->
   </ItemGroup>
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>chdb</ToolCommandName>
-    <PackageId Condition="$(IsLinuxX64) == true" >chdb-tool-linux-x64</PackageId>
-    <PackageId Condition="$(IsOsxX64) == true" >chdb-tool-osx-x64</PackageId>
-    <PackageId Condition="$(IsOsxArm64) == true" >chdb-tool-osx-arm64</PackageId>
+    <PackageId>chdb-tool</PackageId>
+    <!-- <PackageId Condition="$(IsLinuxX64) == true">chdb-tool-linux-x64</PackageId>
+    <PackageId Condition="$(IsLinuxArm64) == true">chdb-tool-linux-arm64</PackageId>
+    <PackageId Condition="$(IsOsxX64) == true">chdb-tool-osx-x64</PackageId>
+    <PackageId Condition="$(IsOsxArm64) == true">chdb-tool-osx-arm64</PackageId> -->
     <Title>chdb tool</Title>
     <Description>clickhouse local cli as a dotnet tool</Description>
   </PropertyGroup>
