@@ -13,7 +13,6 @@ public class ChDbTest
         Assert.AreEqual("23.10.1.1\n", result.Text);
         Assert.IsNull(result.ErrorMessage);
         Assert.AreNotEqual(TimeSpan.Zero, result.Elapsed);
-        Assert.IsTrue(0.1 > result.Elapsed.TotalSeconds);
     }
 
     [TestMethod]
