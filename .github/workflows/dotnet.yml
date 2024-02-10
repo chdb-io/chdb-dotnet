@@ -113,6 +113,13 @@ jobs:
 
     - uses: actions/checkout@v4
 
+    - name: Download chdb library
+      run: |
+        ./update_libchdb.sh
+        # copy to the correct location
+        cp libchdb.so src/chdb/libchdb.so
+        ls -lahS src/chdb/libchdb*
+
     - name: Pack
       run: |
         dotnet pack src/chdb/chdb.csproj -c Release --include-symbols --version-suffix ${{ github.run_number }}
@@ -132,6 +139,13 @@ jobs:
       PUSH_TOOL: true
     steps:
       - uses: actions/checkout@v4
+
+      - name: Download chdb library
+        run: |
+          ./update_libchdb.sh
+          # copy to the correct location
+          cp libchdb.so src/chdb/libchdb.so
+          ls -lahS src/chdb/libchdb*
 
       - name: Pack
         run: |
