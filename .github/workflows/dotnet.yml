@@ -65,9 +65,9 @@ jobs:
     - name: Download chdb library
       run: |
         ./update_libchdb.sh
-        ls -lahS src/chdb/libchdb*
-        # move to the correct location
+        # copy to the correct location
         cp libchdb.so src/chdb/libchdb.so
+        ls -lahS src/chdb/libchdb*
 
     - name: Build
       run: dotnet build --no-restore --configuration Release
