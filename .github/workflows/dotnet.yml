@@ -32,8 +32,6 @@ jobs:
            rid: osx-x64
          - os: macos-14
            rid: osx-arm64
-    env:
-      NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
     steps:
     - name: 'Print manual run reason'
@@ -50,7 +48,8 @@ jobs:
           6.0.x
           8.0.x
         source-url: https://nuget.pkg.github.com/vilinski/index.json
-
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
     - name: Display dotnet version
       run: |
         dotnet --version
@@ -126,9 +125,7 @@ jobs:
         ls -lahS nupkg
 
     - name: Publish the package to nuget.org
-      run: dotnet nuget push nupkg/chdb.*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json
-      env:
-        NUGET_AUTH_TOKEN: ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
+      run: dotnet nuget push nupkg/chdb.*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
 
 
   push_tool:
@@ -153,9 +150,7 @@ jobs:
           ls -lahS nupkg
 
       - name: Publish
-        run: dotnet nuget push nupkg/chdb-tool.*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json
-        env:
-          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
+        run: dotnet nuget push nupkg/chdb-tool.*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json  --api-key ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
 
       - name: Download chdb library
         run: |
