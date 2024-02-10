@@ -1,7 +1,7 @@
 # This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: dotnet build and test
+name: build
 
 env:
   DOTNET_NOLOGO: 1
@@ -20,7 +20,7 @@ on:
         default: 'Manual run'
 
 jobs:
-  build_chdb_native:
+  build_chdb:
     name: Build chdb-${{ matrix.rid }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -61,6 +61,8 @@ jobs:
       run: |
         ./update_libchdb.sh
         ls -lahS src/chdb/libchdb*
+        # move to the correct location
+        cp libchdb.so src/chdb/libchdb.so
 
     - name: Build
       run: dotnet build --no-restore --configuration Release
@@ -76,13 +78,13 @@ jobs:
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
 
-    - name: Pack chdb-${{ matrix.rid }}
-      run: |
-        dotnet pack src/chdb/chdb.csproj -c Release
-        ls -lahS nupkg
+    # - name: Pack chdb-${{ matrix.rid }}
+    #   run: |
+    #     dotnet pack src/chdb/chdb.csproj -c Release
+    #     ls -lahS nupkg
 
-    - name: Publish the package to nuget.org
-      run: dotnet nuget push nupkg/*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
+    # - name: Publish the package to nuget.org
+    #   run: dotnet nuget push nupkg/*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
       # env:
       #   NUGET_AUTH_TOKEN: ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
 
@@ -98,15 +100,15 @@ jobs:
     #     name: dotnet-nupkg-${{ matrix.rid }}
     #     path: nupkg
 
-  build_chdb:
-    name: Build chdb
-    needs: build_chdb_native
+  push_chdb:
+    name: Push chdb
+    needs: build_chdb
     runs-on: ubuntu-latest
     steps:
 
     - name: Pack
       run: |
-        dotnet pack src/chdb-meta/chdb-meta.csproj -c Release --include-symbols
+        dotnet pack src/chdb/chdb.csproj -c Release --include-symbols --version-suffix ${{ github.run_number }}
         ls -lahS nupkg
 
     - name: Publish the package to nuget.org
@@ -115,14 +117,14 @@ jobs:
         NUGET_AUTH_TOKEN: ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
 
 
-  build_tool:
-    name: Build chdb-tool
-    needs: build_chdb
+  push_tool:
+    name: Push chdb-tool
+    needs: push_chdb
     runs-on: ubuntu-latest
     steps:
       - name: Pack
         run: |
-          dotnet pack src/chdb-tool/chdb-tool.csproj -c Release --include-symbols
+          dotnet pack src/chdb-tool/chdb-tool.csproj -c Release --include-symbols --version-suffix ${{ github.run_number }}
           ls -lahS nupkg
 
       - name: Publish
@@ -130,8 +132,16 @@ jobs:
         env:
           NUGET_AUTH_TOKEN: ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
 
+      - name: Download chdb library
+        run: |
+          ./update_libchdb.sh
+          ls -lahS src/chdb/libchdb*
+          # move to the correct location
+          cp libchdb.so src/chdb/libchdb.so
+
       - name: Test chdb-tool
         run: |
-          dotnet tool install --add-source ./nupkg --global chdb-tool-${{ matrix.rid }} --version 0.0.1-alpha.01
+          dotnet tool install --add-source ./nupkg --global chdb-tool
+          which chdb
           chdb --help
           chdb "select version()" PrettyCompact

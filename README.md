@@ -4,45 +4,19 @@ A .NET Core binding for [chdb](https://doc.chdb.io) library.
 
 ![GitHub License](https://img.shields.io/github/license/chdb-io/chdb-dotnet)
 ![example workflow](https://github.com/chdb-io/chdb-dotnet/actions/workflows/dotnet.yml/badge.svg)
-
-<table>
-    <thead>
-        <tr>
-            <th>OS</th>
-            <th>Arch</th>
-            <th>chdb</th>
-            <th>downloads</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td rowspan="2">OSX</td>
-            <td>arm64</td>
-            <td><img src="https://img.shields.io/nuget/vpre/chdb-osx-arm64"></td>
-            <td><img src="https://img.shields.io/nuget/dt/chdb-osx-arm64"></td>
-        </tr>
-        <tr>
-            <td>x64</td>
-            <td><img src="https://img.shields.io/nuget/vpre/chdb-osx-x64"></td>
-            <td><img src="https://img.shields.io/nuget/dt/chdb-osx-x64"></td>
-        </tr>
-        <tr>
-            <td rowspan="2">Linux</td>
-            <td>arm64</td>
-            <td><img src="https://img.shields.io/nuget/vpre/chdb-linux-arm64"></td>
-            <td><img src="https://img.shields.io/nuget/dt/chdb-linux-arm64"></td>
-        </tr>
-        <tr>
-            <td>x64</td>
-            <td><img src="https://img.shields.io/nuget/vpre/chdb-linux-x64"></td>
-            <td><img src="https://img.shields.io/nuget/dt/chdb-linux-x64"></td>
-        </tr>
-    </tbody>
-</table>
+![NuGet Version](https://img.shields.io/nuget/vpre/chdb)
+![NuGet Downloads](https://img.shields.io/nuget/dt/chdb)
 
 ### Usage
 
+Running on platforms: linux, osx, windows, and architectures: x64, arm64.
+
+>Note for windows users - there is no windows bild in sight, but you can still use it in WSL.
+
+Currently the librairy is too large to be packed into a nuget package, so you need to install it manually. Use the [update_libchdb.sh](update_libchdb.sh) script to download the library for your platform and architecture.
+
 ```bash
+./update_libchdb.sh
 dotnet add package chdb
 ```
 
@@ -71,9 +45,7 @@ Console.WriteLine(result.Text);
 ![NuGet Downloads](https://img.shields.io/nuget/dt/chdb-tool)
 
 This is a dotnet tool, running [chdb](https://doc.chdb.io) library.
-Actually you better install the clickhouse client and run `clickhouse local`, but maybe it is more useful for some cases.
-
->Note for windows users - there is no windows bild in sight, but you can use it in WSL.
+Probably you better served using the clickhouse client and run `clickhouse local`, but maybe it is more useful in some cases.
 
 ### Installation
 

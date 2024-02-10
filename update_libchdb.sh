@@ -41,6 +41,3 @@ chmod +x libchdb.so
 
 # Clean up
 rm -f libchdb.tar.gz
-
-# move to the correct location
-mv libchdb.so src/chdb/libchdb.so
