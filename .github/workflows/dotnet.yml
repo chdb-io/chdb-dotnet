@@ -123,6 +123,8 @@ jobs:
 
     - name: Pack
       run: |
+        cp libchdb.so src/chdb/libchdb.so
+        ls -lahS src/chdb/libchdb*
         dotnet pack src/chdb/chdb.csproj -c Release --include-symbols --version-suffix ${{ github.run_number }}
         ls -lahS nupkg
 
@@ -147,6 +149,8 @@ jobs:
 
       - name: Pack
         run: |
+          cp libchdb.so src/chdb/libchdb.so
+          ls -lahS src/chdb/libchdb*
           dotnet pack src/chdb-tool/chdb-tool.csproj -c Release --include-symbols --version-suffix ${{ github.run_number }}
           ls -lahS nupkg
 
