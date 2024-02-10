@@ -2,7 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\chdb\chdb.csproj" Condition="'$(PUSH_TOOL)' != 'true'" />
-    <PackageReference Include="chdb" Version="$(Version)" Condition="'$(PUSH_TOOL)' == 'true'" />
+    <PackageReference Include="chdb" Version="0.*" Condition="'$(PUSH_TOOL)' == 'true'" />
 
     <!-- <PackageReference Include="chdb-linux-x64" Version="$(Version)"  Condition="$(IsLinuxX64) == true"/>
     <PackageReference Include="chdb-linux-arm64" Version="$(Version)"  Condition="$(IsLinuxArm64) == true"/>
