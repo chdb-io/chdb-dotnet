@@ -52,7 +52,12 @@ jobs:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
     - name: Display dotnet version
-      run: dotnet --version
+      run: |
+        dotnet --version
+        echo "GITHUB_WORKSPACE $GITHUB_WORKSPACE"
+        echo "GITHUB_ACTION $GITHUB_ACTION"
+        echo "GITHUB_RUN_ID $GITHUB_RUN_ID"
+        echo "GITHUB_RUN_NUMBER $GITHUB_RUN_NUMBER"
 
     - name: Restore
       run: dotnet restore
