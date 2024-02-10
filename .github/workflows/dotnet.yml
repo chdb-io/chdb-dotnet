@@ -74,13 +74,13 @@ jobs:
     - name: Test
       run: dotnet test -c Release --no-build --logger trx --results-directory "TestResults-${{ matrix.rid }}"
 
-    - name: Upload dotnet test results
-      uses: actions/upload-artifact@v4
-      with:
-        name: dotnet-results-${{ matrix.rid }}
-        path: TestResults-${{ matrix.rid }}
-      # Use always() to always run this step to publish test results when there are test failures
-      if: ${{ always() }}
+    # - name: Upload dotnet test results
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: dotnet-results-${{ matrix.rid }}
+    #     path: TestResults-${{ matrix.rid }}
+    #   # Use always() to always run this step to publish test results when there are test failures
+    #   if: ${{ always() }}
 
     # - name: Pack chdb-${{ matrix.rid }}
     #   run: |
@@ -115,11 +115,11 @@ jobs:
     - name: Download chdb library
       run: ./update_libchdb.sh
 
-    - name: Upload libchdb Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: libchdb
-        path: libchdb.so
+    # - name: Upload libchdb Artifact
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: libchdb
+    #     path: libchdb.so
 
     - name: Pack
       run: |
@@ -141,11 +141,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: libchdb
-          path: libchdb.so
+      - name: Download chdb library
+        run: ./update_libchdb.sh
 
       - name: Pack
         run: |
