@@ -126,6 +126,8 @@ jobs:
     name: Push chdb-tool
     needs: push_chdb
     runs-on: ubuntu-latest
+    env:
+      PUSH_TOOL: true
     steps:
       - name: Pack
         run: |

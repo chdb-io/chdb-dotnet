@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\chdb\chdb.csproj" Condition="'$(GITHUB_ACTIONS)' != 'true'" />
-    <PackageReference Include="chdb" Version="$(Version)" Condition="'$(GITHUB_ACTIONS)' == 'true'" />
+    <ProjectReference Include="..\chdb\chdb.csproj" Condition="'$(PUSH_TOOL)' != 'true'" />
+    <PackageReference Include="chdb" Version="$(Version)" Condition="'$(PUSH_TOOL)' == 'true'" />
 
     <!-- <PackageReference Include="chdb-linux-x64" Version="$(Version)"  Condition="$(IsLinuxX64) == true"/>
     <PackageReference Include="chdb-linux-arm64" Version="$(Version)"  Condition="$(IsLinuxArm64) == true"/>
