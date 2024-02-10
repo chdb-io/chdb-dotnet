@@ -13,7 +13,7 @@
         <GenerateDocumentationFile>True</GenerateDocumentationFile>
         <EnablePackageValidation>true</EnablePackageValidation>
         <PackageOutputPath>../../nupkg</PackageOutputPath>
-        <Version>0.0.2-alpha.0$(GITHUB_RUN_NUMBER)</Version>
+        <Version>0.0.2.0$(GITHUB_RUN_NUMBER)-alpha</Version>
         <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
         <PackageVersion Condition="'$(BuildNumber)' != ''">$(Version).$(BuildNumber)</PackageVersion>
         <Authors>vilinski</Authors>
