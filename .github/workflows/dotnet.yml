@@ -116,7 +116,7 @@ jobs:
       run: ./update_libchdb.sh
 
     - name: Upload libchdb Artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: libchdb
         path: libchdb.so
@@ -142,14 +142,16 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Download Artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: libchdb
           path: libchdb.so
 
       - name: Pack
         run: |
-          cp libchdb.so src/chdb/libchdb.so
+          ls -lahS .
+          ls -lahS src/chdb/*
+          cp libchdb.so src/chdb/
           ls -lahS src/chdb/libchdb*
           dotnet pack src/chdb-tool/chdb-tool.csproj -c Release --include-symbols --version-suffix ${{ github.run_number }}
           ls -lahS nupkg
