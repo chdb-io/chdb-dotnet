@@ -16,9 +16,23 @@ Running on platforms: linux, osx, windows, and architectures: x64, arm64.
 Currently the librairy is too large to be packed into a nuget package, so you need to install it manually. Use the [update_libchdb.sh](update_libchdb.sh) script to download the library for your platform and architecture.
 
 ```bash
+# download the latest version of the library - it takes a version as an optional argument
 ./update_libchdb.sh
+# install the package to your project
 dotnet add package chdb
 ```
+
+Also place the library in appropriate folder, and add following to your csproj file:
+
+```xml
+  <ItemGroup>
+    <None Update="libchdb.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+```
+
+Then you can use it in your code like this:
 
 ```csharp
 using ChDb;
@@ -37,6 +51,21 @@ var result = s.Query("select * from system.formats where is_output = 1", "Pretty
 // ...
 var result = s.Query("DESCRIBE s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/house_parquet/house_0.parquet')");
 Console.WriteLine(result.Text);
+```
+
+or use it right in F# interactive with `dotnet fsi`:
+
+```fsharp
+#r "nuget: chdb"
+
+open ChDb
+
+// print out result in the PrettyCompact format by default
+let result = ChDb.Query "select version()"
+printfn "%s" result.Text
+// or save result to a text or binary file in any supported format
+let result = ChDb.Query("select * from system.formats where is_output = 1", "CSVWithNames")
+System.IO.File.WriteAllBytes("supported_formats.csv", result.Buf)
 ```
 
 ## chdb-tool
@@ -73,13 +102,14 @@ chdb "select * from system.formats where is_output = 1" PrettyCompact
 # Build
 
 ```bash
-# update latest chdb version
 ./update_libchdb.sh [v1.2.1]
-# install versionbump tool
-dotnet tool install -g BumpVersion
-# bump version
-bumpversion patch
-git push --foloow-tags
+cp libchdb.so src/chdb/
+dotnet build -c Release
+dotnet test -c Release
+dotnet pack -c Release
+dotnet nuget add source ./nupkg --name chdb
+dotnet tool update -g chdb-tool
+chdb --version
 ```
 
 ## Authors

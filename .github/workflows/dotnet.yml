@@ -125,7 +125,7 @@ jobs:
       run: |
         cp libchdb.so src/chdb/libchdb.so
         ls -lahS src/chdb/libchdb*
-        dotnet pack src/chdb/chdb.csproj -c Release --include-symbols --version-suffix ${{ github.run_number }}
+        dotnet pack src/chdb/chdb.csproj -c Release --include-symbols
         ls -lahS nupkg
 
     - name: Publish the package to nuget.org
@@ -151,7 +151,7 @@ jobs:
           cp libchdb.so src/chdb/
           ls -lahS src/chdb/libchdb*
           dotnet nuget sources add -n chdb ./nupkg
-          dotnet pack src/chdb-tool/chdb-tool.csproj -c Release --include-symbols --version-suffix ${{ github.run_number }}
+          dotnet pack src/chdb-tool/chdb-tool.csproj -c Release --include-symbols
           ls -lahS nupkg
 
       - name: Publish
@@ -159,6 +159,7 @@ jobs:
 
       - name: Test chdb-tool
         run: |
+          ./update_libchdb.sh
           dotnet tool install --add-source ./nupkg --global chdb-tool
           which chdb
           cp libchdb.so /home/runner/.dotnet/tools/
