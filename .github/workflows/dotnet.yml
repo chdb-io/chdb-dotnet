@@ -150,7 +150,7 @@ jobs:
           ls -lahS src/chdb/*
           cp libchdb.so src/chdb/
           ls -lahS src/chdb/libchdb*
-          dontnet nuget sources add -n chdb ./nupkg
+          dotnet nuget sources add -n chdb ./nupkg
           dotnet pack src/chdb-tool/chdb-tool.csproj -c Release --include-symbols --version-suffix ${{ github.run_number }}
           ls -lahS nupkg
 
