@@ -33,7 +33,8 @@ public static class ChDb
     /// </remarks>
     public static LocalResult? Query(string query, string? format = null)
     {
-        ArgumentNullException.ThrowIfNull(query);
+        if (query is null)
+            throw new ArgumentNullException(nameof(query));
         var argv = new[] {
             "clickhouse",
             "--multiquery",
@@ -49,7 +50,7 @@ public static class ChDb
         {
             var prefix = $"--{key}=";
             if (arg.StartsWith(prefix))
-                return arg[prefix.Length..];
+                return arg.Substring(prefix.Length);
         }
         return null;
     }

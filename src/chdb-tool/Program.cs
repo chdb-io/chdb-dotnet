@@ -21,29 +21,28 @@ void PrintHelp()
 if (args.Length == 0 || args[0] == "--help" || args[0] == "-h")
 {
     PrintHelp();
-    return;
 }
-if (args[0] == "--version" || args[0] == "-v")
+else if (args[0] == "--version" || args[0] == "-v")
 {
     PrintVersion();
-    return;
 }
-try
-{
-    var result = ChDb.ChDb.Query(args[0], args.Length > 1 && !args[1].StartsWith('-') ? args[1] : "PrettyCompact");
-    if (result == null)
-        return; // TODO behavior changed in 1.2.1
-    Console.WriteLine(result.Buf);
-    if (!args.Contains("--quiet") && !args.Contains("-q"))
+else
+    try
     {
-        Console.WriteLine($"Elapsed: {result.Elapsed} s, read {result.RowsRead} rows, {result.BytesRead} bytes" +
-                          $", {result.RowsRead / result.Elapsed.TotalSeconds:F0} rows/s, {result.BytesRead / result.Elapsed.TotalSeconds:F0} bytes/s");
-        if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
-            Console.Error.WriteLine("Error message: " + result.ErrorMessage);
+        var result = ChDb.ChDb.Query(args[0], args.Length > 1 && !args[1].StartsWith('-') ? args[1] : "PrettyCompact");
+        if (result == null)
+            return; // TODO behavior changed in 1.2.1
+        Console.WriteLine(result.Text);
+        if (!args.Contains("--quiet") && !args.Contains("-q"))
+        {
+            Console.WriteLine($"Elapsed: {result.Elapsed} s, read {result.RowsRead} rows, {result.BytesRead} bytes" +
+                              $", {result.RowsRead / result.Elapsed.TotalSeconds:F0} rows/s, {result.BytesRead / result.Elapsed.TotalSeconds:F0} bytes/s");
+            if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
+                Console.Error.WriteLine("Error message: " + result.ErrorMessage);
+        }
     }
-}
-catch (ArgumentException e)
-{
-    Console.Error.WriteLine(e.Message);
-    Environment.Exit(1);
-}
+    catch (ArgumentException e)
+    {
+        Console.Error.WriteLine(e.Message);
+        Environment.Exit(1);
+    }

@@ -1,6 +1,5 @@
 <Project>
     <PropertyGroup>
-        <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
         <RuntimeIdentifiers>linux-x64;osx-x64</RuntimeIdentifiers>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
@@ -13,7 +12,7 @@
         <GenerateDocumentationFile>True</GenerateDocumentationFile>
         <EnablePackageValidation>true</EnablePackageValidation>
         <PackageOutputPath>../../nupkg</PackageOutputPath>
-        <Version>0.0.2.0$(GITHUB_RUN_NUMBER)</Version>
+        <Version>0.0.3.0$(GITHUB_RUN_NUMBER)</Version>
         <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
         <PackageVersion Condition="'$(BuildNumber)' != ''">$(Version).$(BuildNumber)</PackageVersion>
         <Authors>vilinski</Authors>

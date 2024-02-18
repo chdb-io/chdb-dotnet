@@ -5,7 +5,7 @@ public record Session : IDisposable
     /// <summary>
     /// Output format for queries if not explicitely specified. Default is TabSeparated
     /// </summary>
-    public string? Format { get; init; }
+    public string? Format { get; set; }
     /// <summary>
     /// Path to the ClickHouse data directory. If not set, a temporary directory will be used.
     /// </summary>
@@ -13,11 +13,11 @@ public record Session : IDisposable
     /// <summary>
     /// Query Log Level.
     /// </summary>
-    public string? LogLevel { get; init; }
+    public string? LogLevel { get; set; }
     /// <summary>
     /// Whether to delete the data directory on dispose. Default is true.
     /// </summary>
-    public bool IsTemp { get; init; } = true;
+    public bool IsTemp { get; set; } = true;
 
     public void Dispose()
     {

@@ -52,8 +52,7 @@ Probably you better served using the clickhouse client and run `clickhouse local
 Requires .NET SDK 6.0 or later.
 
 ```bash
-#dotnet tool install --global chdb-tool-<OS>-<ARCH>
-dotnet tool install --global chdb-tool-linux-x64
+dotnet tool install --global chdb-tool
 ```
 
 OS supported: linux, osx
