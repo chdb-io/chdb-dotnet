@@ -1,0 +1,43 @@
+<Project>
+    <PropertyGroup>
+        <RuntimeIdentifiers>linux-x64;osx-x64</RuntimeIdentifiers>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+        <RootNamespace>ChDb</RootNamespace>
+        <NoWarn>$(NoWarn);CS1591</NoWarn>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="!$(MSBuildProjectName.EndsWith('Test')) AND !$(MSBuildProjectName.EndsWith('.Benchmarks'))">
+        <GenerateDocumentationFile>True</GenerateDocumentationFile>
+        <EnablePackageValidation>true</EnablePackageValidation>
+        <PackageOutputPath>../../nupkg</PackageOutputPath>
+        <Version>0.0.3.0$(GITHUB_RUN_NUMBER)</Version>
+        <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+        <PackageVersion Condition="'$(BuildNumber)' != ''">$(Version).$(BuildNumber)</PackageVersion>
+        <Authors>vilinski</Authors>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <PackageIcon>chdb.png</PackageIcon>
+        <PackageTags>clickhouse;chdb</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageProjectUrl>https://github.com/vilinski/chdb</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/chdb-io/chdb-dotnet</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <SourceLink>Create</SourceLink>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <IsGithubActions Condition="'$(GITHUB_ACTIONS)' == 'true'">true</IsGithubActions>
+        <IsLinuxX64 Condition="$([MSBuild]::IsOsPlatform('Linux')) And $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) == X64">true</IsLinuxX64>
+        <IsLinuxArm64 Condition="$([MSBuild]::IsOsPlatform('Linux')) And $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) == Arm64">true</IsLinuxArm64>
+        <IsOsxArm64 Condition="$([MSBuild]::IsOsPlatform('OSX')) And $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) == Arm64">true</IsOsxArm64>
+        <IsOsxX64 Condition="$([MSBuild]::IsOsPlatform('OSX')) And $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) == X64">true</IsOsxX64>
+        <IsWindowsX64 Condition="$([MSBuild]::IsOsPlatform('Windows')) And $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) == X64">true</IsWindowsX64>
+        <IsWindowsArm64 Condition="$([MSBuild]::IsOsPlatform('Windows')) And $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) == Arm64">true</IsWindowsArm64>
+    </PropertyGroup>
+
+    <ItemGroup Condition="!$(MSBuildProjectName.EndsWith('.Tests')) AND !$(MSBuildProjectName.EndsWith('.Benchmarks'))">
+        <None Include="../../chdb.png" Pack="true" PackagePath="" />
+        <None Include="../../README.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
+</Project>

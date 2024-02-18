@@ -1,0 +1,169 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: build
+
+env:
+  DOTNET_NOLOGO: 1
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'The reason for running the workflow'
+        required: true
+        default: 'Manual run'
+
+jobs:
+  build_chdb:
+    name: Build chdb-${{ matrix.rid }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+       include:
+         - os: ubuntu-latest
+           rid: linux-x64
+         - os: macos-latest
+           rid: osx-x64
+         - os: macos-14
+           rid: osx-arm64
+
+    steps:
+    - name: 'Print manual run reason'
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      run: |
+        echo 'Reason: ${{ github.event.inputs.reason }}'
+
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: |
+          6.0.x
+          8.0.x
+        source-url: https://nuget.pkg.github.com/vilinski/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    - name: Display dotnet version
+      run: |
+        dotnet --version
+        echo "GITHUB_WORKSPACE $GITHUB_WORKSPACE"
+        echo "GITHUB_ACTION $GITHUB_ACTION"
+        echo "GITHUB_RUN_ID $GITHUB_RUN_ID"
+        echo "GITHUB_RUN_NUMBER $GITHUB_RUN_NUMBER"
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Download chdb library
+      run: ./update_libchdb.sh
+
+    - name: Build
+      run: |
+        # copy to the correct location
+        cp libchdb.so src/chdb/libchdb.so
+        ls -lahS src/chdb/libchdb*
+        dotnet build --no-restore --configuration Release
+
+    - name: Test
+      run: dotnet test -c Release --no-build --logger trx --results-directory "TestResults-${{ matrix.rid }}"
+
+    # - name: Upload dotnet test results
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: dotnet-results-${{ matrix.rid }}
+    #     path: TestResults-${{ matrix.rid }}
+    #   # Use always() to always run this step to publish test results when there are test failures
+    #   if: ${{ always() }}
+
+    # - name: Pack chdb-${{ matrix.rid }}
+    #   run: |
+    #     dotnet pack src/chdb/chdb.csproj -c Release
+    #     ls -lahS nupkg
+
+    # - name: Publish the package to nuget.org
+    #   run: dotnet nuget push nupkg/*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
+      # env:
+      #   NUGET_AUTH_TOKEN: ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
+
+    # - name: Publish chdb-${{ matrix.rid }} package to GPR
+      # run: dotnet nuget push nupkg/chdb-${{ matrix.rid }}.*.nupkg --skip-duplicate --api-key ${{ secrets.PACKAGES_TOKEN }} --source https://nuget.pkg.github.com/chdb-io/index.json
+      #   env:
+      #     NUGET_AUTH_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+
+    # - name: Upload nupkg
+    #   #run: ls -l nupkg/*.nupkg
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: dotnet-nupkg-${{ matrix.rid }}
+    #     path: nupkg
+
+  push_chdb:
+    if: github.event.pull_request.merged
+    name: Push chdb
+    needs: build_chdb
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - name: Download chdb library
+      run: ./update_libchdb.sh
+
+    # - name: Upload libchdb Artifact
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: libchdb
+    #     path: libchdb.so
+
+    - name: Pack
+      run: |
+        cp libchdb.so src/chdb/libchdb.so
+        ls -lahS src/chdb/libchdb*
+        dotnet pack src/chdb/chdb.csproj -c Release --include-symbols
+        ls -lahS nupkg
+
+    - name: Publish the package to nuget.org
+      run: dotnet nuget push nupkg/chdb.*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
+
+
+  push_tool:
+    if: github.event.pull_request.merged
+    name: Push chdb-tool
+    needs: push_chdb
+    runs-on: ubuntu-latest
+    env:
+      PUSH_TOOL: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download chdb library
+        run: ./update_libchdb.sh
+
+      - name: Pack
+        run: |
+          ls -lahS .
+          ls -lahS src/chdb/*
+          cp libchdb.so src/chdb/
+          ls -lahS src/chdb/libchdb*
+          dotnet nuget sources add -n chdb ./nupkg
+          dotnet pack src/chdb-tool/chdb-tool.csproj -c Release --include-symbols
+          ls -lahS nupkg
+
+      - name: Publish
+        run: dotnet nuget push nupkg/chdb-tool.*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json  --api-key ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
+
+      - name: Test chdb-tool
+        run: |
+          ./update_libchdb.sh
+          dotnet tool install --add-source ./nupkg --global chdb-tool
+          which chdb
+          cp libchdb.so /home/runner/.dotnet/tools/
+          chdb --help
+          chdb "select version()" PrettyCompact

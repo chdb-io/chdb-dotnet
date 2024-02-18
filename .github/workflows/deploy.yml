@@ -1,0 +1,31 @@
+name: publish dotnet packages
+
+on:
+  release:
+    types: [ created ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+      - name: Setup .NET Core 8.x
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
+            6.x
+            8.x
+          cache: true
+      - name: Download chdb library
+        run: ./update_libchdb.sh
+      - run: dotnet build --configuration Release
+      - name: Create the packages
+        run: dotnet pack --configuration Release --include-symbols
+      - name: Publish the package to nuget.org
+        run: dotnet nuget push nupkg/*.nupkg -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{secrets.NUGET_TOKEN}}
