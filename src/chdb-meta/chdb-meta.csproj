@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>chdb</PackageId>
     <Title>chdb</Title>
     <Description>chdb native bindings for dotnet core</Description>
@@ -8,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="chdb-linux-x64" Version="$(Version)" Condition="$(IsLinuxX64) == true" />
-    <PackageReference Include="chdb-linux-arm64" Version="$(Version)" Condition="$(IsLinuxArm64) == true" />
+    <!-- <PackageReference Include="chdb-linux-arm64" Version="$(Version)" Condition="$(IsLinuxArm64) == true" /> -->
     <PackageReference Include="chdb-osx-x64" Version="$(Version)" Condition="$(IsOsxX64) == true" />
     <PackageReference Include="chdb-osx-arm64" Version="$(Version)" Condition="$(IsOsxArm64) == true" />
   </ItemGroup>

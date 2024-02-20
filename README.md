@@ -11,25 +11,11 @@ A .NET Core binding for [chdb](https://doc.chdb.io) library.
 
 Running on platforms: linux, osx, windows, and architectures: x64, arm64.
 
->Note for windows users - there is no windows bild in sight, but you can still use it in WSL.
-
-Currently the librairy is too large to be packed into a nuget package, so you need to install it manually. Use the [update_libchdb.sh](update_libchdb.sh) script to download the library for your platform and architecture.
+>Note for windows users - there is no windows build in sight, but you can still use it in WSL.
 
 ```bash
-# download the latest version of the library - it takes a version as an optional argument
-./update_libchdb.sh
 # install the package to your project
 dotnet add package chdb
-```
-
-Also place the library in appropriate folder, and add following to your csproj file:
-
-```xml
-  <ItemGroup>
-    <None Update="libchdb.so">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
 ```
 
 Then you can use it in your code like this:

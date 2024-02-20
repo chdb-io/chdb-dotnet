@@ -9,10 +9,10 @@ internal static class NativeMethods
     private const string __DllName = "libchdb.so";
 
     [DllImport(__DllName, EntryPoint = "query_stable_v2", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-    internal static extern IntPtr query_stable_v2(int argc, string[] argv);
+    internal static extern nint query_stable_v2(int argc, string[] argv);
 
     [DllImport(__DllName, EntryPoint = "free_result_v2", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-    internal static extern void free_result_v2(IntPtr result);
+    internal static extern void free_result_v2(nint result);
 }
 
 /// <summary>
