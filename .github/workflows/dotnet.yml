@@ -21,17 +21,22 @@ on:
 
 jobs:
   build_chdb:
-    name: Build chdb-${{ matrix.rid }}
+    name: Build chdb-${{ matrix.RID }}
     runs-on: ${{ matrix.os }}
+    env:
+      RID: ${{ matrix.RID }}
     strategy:
       matrix:
        include:
          - os: ubuntu-latest
-           rid: linux-x64
+           RID: linux-x64
+        # github runner not available yet
+        #  - os: ubuntu-latest
+        #    RID: linux-arm64
          - os: macos-latest
-           rid: osx-x64
+           RID: osx-x64
          - os: macos-14
-           rid: osx-arm64
+           RID: osx-arm64
 
     steps:
     - name: 'Print manual run reason'
@@ -42,7 +47,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: |
           6.0.x
@@ -72,17 +77,27 @@ jobs:
         dotnet build --no-restore --configuration Release
 
     - name: Test
-      run: dotnet test -c Release --no-build --logger trx --results-directory "TestResults-${{ matrix.rid }}"
+      run: dotnet test -c Release --no-build --logger trx --results-directory "TestResults-${{ matrix.RID }}"
+
+    - name: Pack chdb-${{ matrix.RID }}
+      run: |
+        cp libchdb.so src/chdb/libchdb.so
+        ls -lahS src/chdb/libchdb*
+        dotnet pack src/chdb/chdb.csproj -c Release --include-symbols
+        ls -lahS nupkg
+
+    - name: Publish chdb-${{ matrix.RID }} package to nuget.org
+      run: dotnet nuget push nupkg/chd-.*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
 
     # - name: Upload dotnet test results
     #   uses: actions/upload-artifact@v4
     #   with:
-    #     name: dotnet-results-${{ matrix.rid }}
-    #     path: TestResults-${{ matrix.rid }}
+    #     name: dotnet-results-${{ matrix.RID }}
+    #     path: TestResults-${{ matrix.RID }}
     #   # Use always() to always run this step to publish test results when there are test failures
     #   if: ${{ always() }}
 
-    # - name: Pack chdb-${{ matrix.rid }}
+    # - name: Pack chdb-${{ matrix.RID }}
     #   run: |
     #     dotnet pack src/chdb/chdb.csproj -c Release
     #     ls -lahS nupkg
@@ -92,8 +107,8 @@ jobs:
       # env:
       #   NUGET_AUTH_TOKEN: ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
 
-    # - name: Publish chdb-${{ matrix.rid }} package to GPR
-      # run: dotnet nuget push nupkg/chdb-${{ matrix.rid }}.*.nupkg --skip-duplicate --api-key ${{ secrets.PACKAGES_TOKEN }} --source https://nuget.pkg.github.com/chdb-io/index.json
+    # - name: Publish chdb-${{ matrix.RID }} package to GPR
+      # run: dotnet nuget push nupkg/chdb-${{ matrix.RID }}.*.nupkg --skip-duplicate --api-key ${{ secrets.PACKAGES_TOKEN }} --source https://nuget.pkg.github.com/chdb-io/index.json
       #   env:
       #     NUGET_AUTH_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
 
@@ -101,7 +116,7 @@ jobs:
     #   #run: ls -l nupkg/*.nupkg
     #   uses: actions/upload-artifact@v4
     #   with:
-    #     name: dotnet-nupkg-${{ matrix.rid }}
+    #     name: dotnet-nupkg-${{ matrix.RID }}
     #     path: nupkg
 
   push_chdb:
@@ -126,7 +141,8 @@ jobs:
       run: |
         cp libchdb.so src/chdb/libchdb.so
         ls -lahS src/chdb/libchdb*
-        dotnet pack src/chdb/chdb.csproj -c Release --include-symbols
+        dotnet nuget sources add -n chdb ./nupkg
+        dotnet pack src/chdb-meta/chdb-meta.csproj -c Release --include-symbols
         ls -lahS nupkg
 
     - name: Publish the package to nuget.org
