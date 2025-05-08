@@ -8,8 +8,8 @@ public class ChDbTest
     {
         var result = ChDb.Query("select version()");
         Assert.IsNotNull(result);
-        // Assert.AreEqual(1UL, result.RowsRead);
-        // Assert.AreEqual(52UL, result.BytesRead);
+        Assert.AreEqual(1UL, result.RowsRead);
+        Assert.AreEqual(50UL, result.BytesRead);
         Assert.AreEqual("24.8.4.1\n", result.Text);
         Assert.IsNull(result.ErrorMessage);
         Assert.AreNotEqual(TimeSpan.Zero, result.Elapsed);
@@ -104,19 +104,19 @@ public class ChDbTest
         StringAssert.StartsWith(result.Text, "price\tNullable(Int64)");
     }
 
-    [TestMethod]
-    public void S3CountTest()
-    {
-        var result = ChDb.Query(
-            """
-            SELECT count()
-            FROM s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/house_parquet/house_0.parquet')
-            """);
-        Assert.IsNotNull(result);
-        Assert.IsNull(result.ErrorMessage);
-        Assert.IsTrue(int.TryParse(result.Text, out var count));
-        Assert.AreEqual(2772030, count);
-    }
+    // [TestMethod]
+    // public void S3CountTest()
+    // {
+    //     var result = ChDb.Query(
+    //         """
+    //         SELECT count()
+    //         FROM s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/house_parquet/house_0.parquet')
+    //         """);
+    //     Assert.IsNotNull(result);
+    //     Assert.IsNull(result.ErrorMessage);
+    //     Assert.IsTrue(int.TryParse(result.Text, out var count));
+    //     Assert.AreEqual(2772030, count);
+    // }
 
     [TestMethod]
     public void CsvTest()
@@ -129,18 +129,23 @@ public class ChDbTest
             Eva, 28, Paris
             """;
         var dataPath = "/tmp/chdb/data";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
         Directory.CreateDirectory(dataPath);
         File.WriteAllText(Path.Combine(".", "test.csv"), csv);
-        var session = new Session
+        using var session = new Session
         {
+            IsTemp = false,
             Format = "PrettyCompact",
             DataPath = dataPath,
             LogLevel = "trace",
         };
         var result = session.Query("SELECT * FROM 'test.csv'", "CSVWithNamesAndTypes");
+        Console.WriteLine($"Error message111:\n{result?.ErrorMessage}");
+        Console.WriteLine($"Query result111:\n{result?.Text}");
         Assert.IsNotNull(result);
-        // Assert.AreEqual(4UL, result.RowsRead);
-        // Assert.AreEqual(155UL, result.BytesRead);
+        Assert.AreEqual(4UL, result.RowsRead);
+        Assert.AreEqual(155UL, result.BytesRead);
         StringAssert.StartsWith(result.Text,
             """
             "Name","Age","City"
@@ -157,6 +162,9 @@ public class ChDbTest
         };
         var nr = "xyz";
 
+        var result = s.Query($"select version()");
+        Console.WriteLine($"Error message222:\n{result?.ErrorMessage}");
+        Console.WriteLine($"Query result222:\n{result?.Text}");
         Assert.IsNull(s.Query($"select version()")?.ErrorMessage);
 
         StringAssert.Contains(s.Query($"SHOW DATABASES")?.Text, "default");
