@@ -7,6 +7,12 @@ A .NET Core binding for [chdb](https://doc.chdb.io) library.
 ![NuGet Version](https://img.shields.io/nuget/vpre/chdb)
 ![NuGet Downloads](https://img.shields.io/nuget/dt/chdb)
 
+### Architecture
+
+<div align="center">
+  <img src="https://github.com/chdb-io/chdb-dotnet/raw/main/chdb-dotnet.png" width="450">
+</div>
+
 ### Usage
 
 Running on platforms: linux, osx, windows, and architectures: x64, arm64.
@@ -102,7 +108,7 @@ chdb "select * from system.formats where is_output = 1" PrettyCompact
 # Build
 
 ```bash
-./update_libchdb.sh [v1.2.1]
+./update_libchdb.sh [v2.1.1]
 cp libchdb.so src/chdb/
 dotnet build -c Release
 dotnet test -c Release
@@ -115,3 +121,4 @@ chdb --version
 ## Authors
 
 * [Andreas Vilinski](https://github.com/vilinski)
+* [Auxten](https://github.com/auxten)
