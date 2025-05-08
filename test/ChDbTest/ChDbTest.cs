@@ -159,9 +159,8 @@ public class ChDbTest
 
         Assert.IsNull(s.Query($"select version()")?.ErrorMessage);
 
-        // chdb creates "_local" database instead of "default" in clickhouse
-        StringAssert.Contains(s.Query($"SHOW DATABASES")?.Text, "_local");
-        StringAssert.Contains(s.Query($"SELECT currentDatabase()")?.Text, "_local");
+        StringAssert.Contains(s.Query($"SHOW DATABASES")?.Text, "default");
+        StringAssert.Contains(s.Query($"SELECT currentDatabase()")?.Text, "default");
         Assert.AreEqual("", s.Query($"SHOW TABLES")?.Text);
 
         var r1 = s.Query($"DROP DATABASE IF EXISTS db_{nr}");
