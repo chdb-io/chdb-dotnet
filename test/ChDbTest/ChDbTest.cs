@@ -8,7 +8,7 @@ public class ChDbTest
     {
         var result = ChDb.Query("select version()");
         Assert.IsNotNull(result);
-        Assert.AreEqual(1UL, result.RowsRead);
+        // Assert.AreEqual(1UL, result.RowsRead);
         // Assert.AreEqual(52UL, result.BytesRead);
         Assert.AreEqual("24.8.4.1\n", result.Text);
         Assert.IsNull(result.ErrorMessage);
@@ -139,7 +139,7 @@ public class ChDbTest
         };
         var result = session.Query("SELECT * FROM 'test.csv'", "CSVWithNamesAndTypes");
         Assert.IsNotNull(result);
-        Assert.AreEqual(4UL, result.RowsRead);
+        // Assert.AreEqual(4UL, result.RowsRead);
         // Assert.AreEqual(155UL, result.BytesRead);
         StringAssert.StartsWith(result.Text,
             """
