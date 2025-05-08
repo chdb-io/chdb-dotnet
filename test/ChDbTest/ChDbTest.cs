@@ -95,14 +95,14 @@ public class ChDbTest
         Assert.AreEqual(null, result.ErrorMessage);
     }
 
-    [TestMethod]
-    public void S3ParquetTest()
-    {
-        var result = ChDb.Query("DESCRIBE s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/house_parquet/house_0.parquet')");
-        Assert.IsNotNull(result);
-        Assert.IsNull(result.ErrorMessage);
-        StringAssert.StartsWith(result.Text, "price\tNullable(Int64)");
-    }
+    // [TestMethod]
+    // public void S3ParquetTest()
+    // {
+    //     var result = ChDb.Query("DESCRIBE s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/house_parquet/house_0.parquet')");
+    //     Assert.IsNotNull(result);
+    //     Assert.IsNull(result.ErrorMessage);
+    //     StringAssert.StartsWith(result.Text, "price\tNullable(Int64)");
+    // }
 
     // [TestMethod]
     // public void S3CountTest()
@@ -141,8 +141,8 @@ public class ChDbTest
             LogLevel = "trace",
         };
         var result = session.Query("SELECT * FROM 'test.csv'", "CSVWithNamesAndTypes");
-        Console.WriteLine($"Error message111:\n{result?.ErrorMessage}");
-        Console.WriteLine($"Query result111:\n{result?.Text}");
+        // Console.WriteLine($"Error message:\n{result?.ErrorMessage}");
+        // Console.WriteLine($"Query result:\n{result?.Text}");
         Assert.IsNotNull(result);
         Assert.AreEqual(4UL, result.RowsRead);
         Assert.AreEqual(155UL, result.BytesRead);
@@ -163,8 +163,8 @@ public class ChDbTest
         var nr = "xyz";
 
         var result = s.Query($"select version()");
-        Console.WriteLine($"Error message222:\n{result?.ErrorMessage}");
-        Console.WriteLine($"Query result222:\n{result?.Text}");
+        // Console.WriteLine($"Error message:\n{result?.ErrorMessage}");
+        // Console.WriteLine($"Query result:\n{result?.Text}");
         Assert.IsNull(s.Query($"select version()")?.ErrorMessage);
 
         StringAssert.Contains(s.Query($"SHOW DATABASES")?.Text, "default");

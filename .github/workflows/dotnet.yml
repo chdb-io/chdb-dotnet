@@ -26,7 +26,7 @@ jobs:
     strategy:
       matrix:
        include:
-         - os: ubuntu-22.04
+         - os: ubuntu-latest
            rid: linux-x64
          - os: macos-latest
            rid: osx-x64
