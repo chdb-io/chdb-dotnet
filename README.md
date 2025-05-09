@@ -108,7 +108,7 @@ chdb "select * from system.formats where is_output = 1" PrettyCompact
 # Build
 
 ```bash
-./update_libchdb.sh [v2.1.1]
+./update_libchdb.sh [v2.0.4]
 cp libchdb.so src/chdb/
 dotnet build -c Release
 dotnet test -c Release
