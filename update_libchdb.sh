@@ -24,7 +24,7 @@ esac
 
 # Get the newest release version
 # LATEST_RELEASE=$(curl --silent "https://api.github.com/repos/chdb-io/chdb/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-LATEST_RELEASE=v2.1.1
+LATEST_RELEASE=v2.0.4
 RELEASE=${1:-$LATEST_RELEASE}
 
 DOWNLOAD_URL="https://github.com/chdb-io/chdb/releases/download/$RELEASE/$PLATFORM-libchdb.tar.gz"
