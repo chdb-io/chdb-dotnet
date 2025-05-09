@@ -72,7 +72,7 @@ jobs:
         dotnet build --no-restore --configuration Release
 
     - name: Test
-      run: dotnet test -c Release --no-build --logger trx --results-directory "TestResults-${{ matrix.rid }}"
+      run: dotnet test -c Release /p:TestTfmsInParallel=false --logger "console;verbosity=detailed" --no-build --logger trx --results-directory "TestResults-${{ matrix.rid }}"
 
     # - name: Upload dotnet test results
     #   uses: actions/upload-artifact@v4

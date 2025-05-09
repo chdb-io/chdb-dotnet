@@ -21,7 +21,7 @@ public record Session : IDisposable
 
     public void Dispose()
     {
-        if (!IsTemp && DataPath?.EndsWith("chdb_") == true && Directory.Exists(DataPath))
+        if (IsTemp && DataPath?.EndsWith("chdb_") == true && Directory.Exists(DataPath))
             Directory.Delete(DataPath, true);
     }
 

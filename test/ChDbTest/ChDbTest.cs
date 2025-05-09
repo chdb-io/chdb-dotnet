@@ -9,8 +9,8 @@ public class ChDbTest
         var result = ChDb.Query("select version()");
         Assert.IsNotNull(result);
         Assert.AreEqual(1UL, result.RowsRead);
-        Assert.AreEqual(52UL, result.BytesRead);
-        Assert.AreEqual("23.10.1.1\n", result.Text);
+        Assert.AreEqual(50UL, result.BytesRead);
+        Assert.AreEqual("24.5.1.1\n", result.Text);
         Assert.IsNull(result.ErrorMessage);
         Assert.AreNotEqual(TimeSpan.Zero, result.Elapsed);
     }
@@ -129,15 +129,20 @@ public class ChDbTest
             Eva, 28, Paris
             """;
         var dataPath = "/tmp/chdb/data";
+        if (Directory.Exists(dataPath))
+            Directory.Delete(dataPath, true);
         Directory.CreateDirectory(dataPath);
         File.WriteAllText(Path.Combine(".", "test.csv"), csv);
-        var session = new Session
+        using var session = new Session
         {
+            IsTemp = false,
             Format = "PrettyCompact",
             DataPath = dataPath,
             LogLevel = "trace",
         };
         var result = session.Query("SELECT * FROM 'test.csv'", "CSVWithNamesAndTypes");
+        // Console.WriteLine($"Error message:\n{result?.ErrorMessage}");
+        // Console.WriteLine($"Query result:\n{result?.Text}");
         Assert.IsNotNull(result);
         Assert.AreEqual(4UL, result.RowsRead);
         Assert.AreEqual(155UL, result.BytesRead);
@@ -157,11 +162,13 @@ public class ChDbTest
         };
         var nr = "xyz";
 
+        var result = s.Query($"select version()");
+        // Console.WriteLine($"Error message:\n{result?.ErrorMessage}");
+        // Console.WriteLine($"Query result:\n{result?.Text}");
         Assert.IsNull(s.Query($"select version()")?.ErrorMessage);
 
-        // chdb creates "_local" database instead of "default" in clickhouse
-        StringAssert.Contains(s.Query($"SHOW DATABASES")?.Text, "_local");
-        StringAssert.Contains(s.Query($"SELECT currentDatabase()")?.Text, "_local");
+        StringAssert.Contains(s.Query($"SHOW DATABASES")?.Text, "default");
+        StringAssert.Contains(s.Query($"SELECT currentDatabase()")?.Text, "default");
         Assert.AreEqual("", s.Query($"SHOW TABLES")?.Text);
 
         var r1 = s.Query($"DROP DATABASE IF EXISTS db_{nr}");
