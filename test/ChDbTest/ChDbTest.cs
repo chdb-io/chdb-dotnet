@@ -10,7 +10,7 @@ public class ChDbTest
         Assert.IsNotNull(result);
         Assert.AreEqual(1UL, result.RowsRead);
         Assert.AreEqual(50UL, result.BytesRead);
-        Assert.AreEqual("24.8.4.1\n", result.Text);
+        Assert.AreEqual("24.5.1.1\n", result.Text);
         Assert.IsNull(result.ErrorMessage);
         Assert.AreNotEqual(TimeSpan.Zero, result.Elapsed);
     }
@@ -95,28 +95,28 @@ public class ChDbTest
         Assert.AreEqual(null, result.ErrorMessage);
     }
 
-    // [TestMethod]
-    // public void S3ParquetTest()
-    // {
-    //     var result = ChDb.Query("DESCRIBE s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/house_parquet/house_0.parquet')");
-    //     Assert.IsNotNull(result);
-    //     Assert.IsNull(result.ErrorMessage);
-    //     StringAssert.StartsWith(result.Text, "price\tNullable(Int64)");
-    // }
+    [TestMethod]
+    public void S3ParquetTest()
+    {
+        var result = ChDb.Query("DESCRIBE s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/house_parquet/house_0.parquet')");
+        Assert.IsNotNull(result);
+        Assert.IsNull(result.ErrorMessage);
+        StringAssert.StartsWith(result.Text, "price\tNullable(Int64)");
+    }
 
-    // [TestMethod]
-    // public void S3CountTest()
-    // {
-    //     var result = ChDb.Query(
-    //         """
-    //         SELECT count()
-    //         FROM s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/house_parquet/house_0.parquet')
-    //         """);
-    //     Assert.IsNotNull(result);
-    //     Assert.IsNull(result.ErrorMessage);
-    //     Assert.IsTrue(int.TryParse(result.Text, out var count));
-    //     Assert.AreEqual(2772030, count);
-    // }
+    [TestMethod]
+    public void S3CountTest()
+    {
+        var result = ChDb.Query(
+            """
+            SELECT count()
+            FROM s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/house_parquet/house_0.parquet')
+            """);
+        Assert.IsNotNull(result);
+        Assert.IsNull(result.ErrorMessage);
+        Assert.IsTrue(int.TryParse(result.Text, out var count));
+        Assert.AreEqual(2772030, count);
+    }
 
     [TestMethod]
     public void CsvTest()
