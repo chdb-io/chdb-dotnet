@@ -2,18 +2,17 @@
 
   <ItemGroup>
     <ProjectReference Include="..\chdb\chdb.csproj" Condition="'$(PUSH_TOOL)' != 'true'" />
-    <PackageReference Include="chdb" Version="0.*" Condition="'$(PUSH_TOOL)' == 'true'" />
-
-    <!-- <PackageReference Include="chdb-linux-x64" Version="$(Version)"  Condition="$(IsLinuxX64) == true"/>
-    <PackageReference Include="chdb-linux-arm64" Version="$(Version)"  Condition="$(IsLinuxArm64) == true"/>
-    <PackageReference Include="chdb-osx-x64" Version="$(Version)"  Condition="$(IsOsxX64) == true"/>
-    <PackageReference Include="chdb-osx-arm64" Version="$(Version)"  Condition="$(IsOsxArm64) == true"/> -->
+    <!-- when packing the tool for publishing, depend on the published chdb package;
+         the native library is resolved via its runtime.json -->
+    <PackageReference Include="chdb" Version="$(Version)" Condition="'$(PUSH_TOOL)' == 'true'" />
   </ItemGroup>
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <PackAsTool>true</PackAsTool>
+    <!-- platform-specific tool packages, one per RID with libchdb.so bundled -->
+    <RuntimeIdentifiers>linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
     <ToolCommandName>chdb</ToolCommandName>
     <PackageId>chdb-tool</PackageId>
     <!-- <PackageId Condition="$(IsLinuxX64) == true">chdb-tool-linux-x64</PackageId>

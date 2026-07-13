@@ -1,19 +1,42 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <InternalsVisibleTo>tests</InternalsVisibleTo>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <!-- <PackageId Condition="$(IsLinuxX64) == true" >chdb-linux-x64</PackageId>
-    <PackageId Condition="$(IsLinuxArm64) == true" >chdb-linux-arm64</PackageId>
-    <PackageId Condition="$(IsOsxX64) == true" >chdb-osx-x64</PackageId>
-    <PackageId Condition="$(IsOsxArm64) == true" >chdb-osx-arm64</PackageId> -->
     <PackageId>chdb</PackageId>
     <Title>chdb</Title>
     <Description>chdb native bindings for dotnet core</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- the runtime.json maps RIDs to the chdb-<rid> native packages, so restore
+         only downloads the library matching the target platform -->
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddRuntimeJson</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="libchdb.so" Pack="false" CopyToOutputDirectory="PreserveNewest" />
+    <!-- local development/tests only: copy the libchdb.so of the host platform,
+         downloaded by update_libchdb.sh into lib/<platform>; never packed -->
+    <None Include="../../lib/linux-x86_64/libchdb.so"  Condition="'$(IsLinuxX64)' == 'true'   And Exists('../../lib/linux-x86_64/libchdb.so')"  Pack="false" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../lib/linux-aarch64/libchdb.so" Condition="'$(IsLinuxArm64)' == 'true' And Exists('../../lib/linux-aarch64/libchdb.so')" Pack="false" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../lib/macos-x86_64/libchdb.so"  Condition="'$(IsOsxX64)' == 'true'     And Exists('../../lib/macos-x86_64/libchdb.so')"  Pack="false" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../lib/macos-arm64/libchdb.so"   Condition="'$(IsOsxArm64)' == 'true'   And Exists('../../lib/macos-arm64/libchdb.so')"   Pack="false" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <Target Name="AddRuntimeJson">
+    <PropertyGroup>
+      <RuntimeJsonContent>
+{
+  "runtimes": {
+    "linux-x64":   { "chdb": { "chdb-linux-x64":   "$(ChdbVersion)" } },
+    "linux-arm64": { "chdb": { "chdb-linux-arm64": "$(ChdbVersion)" } },
+    "osx-x64":     { "chdb": { "chdb-osx-x64":     "$(ChdbVersion)" } },
+    "osx-arm64":   { "chdb": { "chdb-osx-arm64":   "$(ChdbVersion)" } }
+  }
+}
+      </RuntimeJsonContent>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(IntermediateOutputPath)runtime.json" Lines="$(RuntimeJsonContent)" Overwrite="true" />
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(IntermediateOutputPath)runtime.json" PackagePath="/" />
+    </ItemGroup>
+  </Target>
 </Project>

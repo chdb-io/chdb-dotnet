@@ -31,24 +31,31 @@ public record LocalResult
         this.Elapsed = Elapsed;
     }
 
-    internal static LocalResult? FromPtr(nint ptr)
+    internal static LocalResult? FromHandle(nint handle)
     {
-        if (ptr == IntPtr.Zero)
+        if (handle == IntPtr.Zero)
             return null;
-        var h = Marshal.PtrToStructure<Handle>(ptr);
-        if (h == null)
-            return null;
+        try
+        {
+            var errorPtr = NativeMethods.chdb_result_error(handle);
+            if (errorPtr != IntPtr.Zero)
+                return new LocalResult(null, MarshalPtrToStringUTF8(errorPtr), 0, 0, TimeSpan.Zero);
 
-        var errorMessage = h.error_message == IntPtr.Zero ? null : MarshalPtrToStringUTF8(h.error_message);
-        if (errorMessage != null)
-            return new LocalResult(null, errorMessage, 0, 0, TimeSpan.Zero);
+            var bufPtr = NativeMethods.chdb_result_buffer(handle);
+            var len = checked((int)NativeMethods.chdb_result_length(handle));
+            var buf = bufPtr == IntPtr.Zero ? null : new byte[len];
+            if (buf != null)
+                Marshal.Copy(bufPtr, buf, 0, len);
 
-        var elapsed = TimeSpan.FromSeconds(h.elapsed);
-
-        var buf = h.buf == IntPtr.Zero ? null : new byte[h.len];
-        if (buf != null)
-            Marshal.Copy(h.buf, buf, 0, h.len);
-        return new LocalResult(buf, errorMessage, h.rows_read, h.bytes_read, elapsed);
+            var elapsed = TimeSpan.FromSeconds(NativeMethods.chdb_result_elapsed(handle));
+            var rowsRead = NativeMethods.chdb_result_rows_read(handle);
+            var bytesRead = NativeMethods.chdb_result_bytes_read(handle);
+            return new LocalResult(buf, null, rowsRead, bytesRead, elapsed);
+        }
+        finally
+        {
+            NativeMethods.chdb_destroy_query_result(handle);
+        }
     }
 
     private static string MarshalPtrToStringUTF8(nint ptr)
@@ -61,19 +68,5 @@ public record LocalResult
             var clrString = System.Text.Encoding.UTF8.GetString(str, length);
             return clrString;
         }
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal class Handle
-    {
-        internal nint buf;
-        internal int len;
-        internal nint _vec; // std::vector<char> *, for freeing
-        internal double elapsed;
-        internal ulong rows_read;
-        internal ulong bytes_read;
-        internal nint error_message;
-
-        public override string ToString() => $"Handle{{\n\tbuf={buf},\n\tlen={len},\n\t_vec={_vec},\n\telapsed={elapsed},\n\trows_read={rows_read},\n\tbytes_read={bytes_read},\n\terror_message={error_message}}}";
     }
 }

@@ -5,7 +5,12 @@
 
 libchdb.tar.gz
 chdb.h
-src/chdb/libchdb.so
+chdb.hpp
+**/*.so
+nupkg/
+
+# claude code worktrees
+.claude/
 
 # dotenv files
 .env

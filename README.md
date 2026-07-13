@@ -17,25 +17,11 @@ A .NET Core binding for [chdb](https://doc.chdb.io) library.
 
 Running on platforms: linux, osx, windows, and architectures: x64, arm64.
 
->Note for windows users - there is no windows bild in sight, but you can still use it in WSL.
-
-Currently the librairy is too large to be packed into a nuget package, so you need to install it manually. Use the [update_libchdb.sh](update_libchdb.sh) script to download the library for your platform and architecture.
+>Note for windows users - there is no windows build in sight, but you can still use it in WSL.
 
 ```bash
-# download the latest version of the library - it takes a version as an optional argument
-./update_libchdb.sh
 # install the package to your project
 dotnet add package chdb
-```
-
-Also place the library in appropriate folder, and add following to your csproj file:
-
-```xml
-  <ItemGroup>
-    <None Update="libchdb.so">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
 ```
 
 Then you can use it in your code like this:
@@ -45,7 +31,7 @@ using ChDb;
 
 var result = ChDb.Query("select version()");
 Console.WriteLine(result.Text);
-// 23.10.1.1
+// 26.5.1.1
 var s = new Session();
 var result = s.Query("select * from system.formats where is_output = 1", "PrettyCompact");
 // ┌─name───────────────────────────────────────┬─is_input─┬─is_output─┬─supports_parallel_parsing─┬─supports_parallel_formatting─┐
@@ -66,7 +52,7 @@ or use it right in F# interactive with `dotnet fsi`:
 
 open ChDb
 
-// print out result in the PrettyCompact format by default
+// print out result in the TabSeparated format by default
 let result = ChDb.Query "select version()"
 printfn "%s" result.Text
 // or save result to a text or binary file in any supported format
@@ -84,7 +70,7 @@ Probably you better served using the clickhouse client and run `clickhouse local
 
 ### Installation
 
-Requires .NET SDK 6.0 or later.
+Requires .NET SDK 10.0 or later.
 
 ```bash
 dotnet tool install --global chdb-tool
@@ -108,11 +94,15 @@ chdb "select * from system.formats where is_output = 1" PrettyCompact
 # Build
 
 ```bash
-./update_libchdb.sh [v2.0.4]
-cp libchdb.so src/chdb/
+# downloads the library of the host platform into lib/<platform>/
+./update_libchdb.sh
+# optionally specify explicit version and platform
+./update_libchdb.sh v26.5.0 linux-x86_64
 dotnet build -c Release
 dotnet test -c Release
-dotnet pack -c Release
+dotnet pack src/chdb/chdb.csproj -c Release
+# native packages, one per runtime identifier (expects lib/<platform>/libchdb.so)
+dotnet pack src/chdb-runtime/chdb-runtime.csproj -c Release -p:RID=linux-x64
 dotnet nuget add source ./nupkg --name chdb
 dotnet tool update -g chdb-tool
 chdb --version

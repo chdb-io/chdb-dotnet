@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <PackageId>chdb-$(RID)</PackageId>
+    <Title>chdb native library</Title>
+    <Description>chdb native library for $(RID). Not meant to be referenced directly - reference the chdb package instead, it pulls the matching native package via its runtime.json.</Description>
+    <!-- native only: no assembly, no dependencies -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Condition="$(RID) == 'linux-x64'"   Include="../../lib/linux-x86_64/libchdb.so"  Pack="true" PackagePath="runtimes/linux-x64/native/" />
+    <None Condition="$(RID) == 'linux-arm64'" Include="../../lib/linux-aarch64/libchdb.so" Pack="true" PackagePath="runtimes/linux-arm64/native/" />
+    <None Condition="$(RID) == 'osx-x64'"     Include="../../lib/macos-x86_64/libchdb.so"  Pack="true" PackagePath="runtimes/osx-x64/native/" />
+    <None Condition="$(RID) == 'osx-arm64'"   Include="../../lib/macos-arm64/libchdb.so"   Pack="true" PackagePath="runtimes/osx-arm64/native/" />
+  </ItemGroup>
+
+  <Target Name="RequireRidForPack" BeforeTargets="GenerateNuspec">
+    <Error Condition="'$(RID)' == ''" Text="Pack this project with -p:RID=&lt;rid&gt; (linux-x64, linux-arm64, osx-x64, osx-arm64)." />
+  </Target>
+</Project>
