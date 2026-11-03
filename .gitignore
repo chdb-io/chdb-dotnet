@@ -5,6 +5,7 @@
 
 libchdb.tar.gz
 chdb.h
+chdb.hpp
 src/chdb/libchdb.so
 
 # dotenv files

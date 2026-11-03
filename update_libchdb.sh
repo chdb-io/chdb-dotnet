@@ -23,11 +23,11 @@ case "$(uname -s)" in
 esac
 
 # Get the newest release version
-# LATEST_RELEASE=$(curl --silent "https://api.github.com/repos/chdb-io/chdb/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-LATEST_RELEASE=v2.0.4
+# LATEST_RELEASE=$(curl --silent "https://api.github.com/repos/chdb-io/chdb-core/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+LATEST_RELEASE=v26.11.0-rc.1
 RELEASE=${1:-$LATEST_RELEASE}
 
-DOWNLOAD_URL="https://github.com/chdb-io/chdb/releases/download/$RELEASE/$PLATFORM-libchdb.tar.gz"
+DOWNLOAD_URL="https://github.com/chdb-io/chdb-core/releases/download/$RELEASE/$PLATFORM-libchdb.tar.gz"
 
 echo "Downloading $PLATFORM-libchdb.tar.gz from $DOWNLOAD_URL (latest is $LATEST_RELEASE)"
 

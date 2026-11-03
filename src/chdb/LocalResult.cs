@@ -31,24 +31,26 @@ public record LocalResult
         this.Elapsed = Elapsed;
     }
 
-    internal static LocalResult? FromPtr(nint ptr)
+    /// <summary>
+    /// Copy a <c>chdb_result</c> into a managed result. The caller still owns and destroys <paramref name="result"/>.
+    /// </summary>
+    internal static LocalResult? FromResult(nint result)
     {
-        if (ptr == IntPtr.Zero)
-            return null;
-        var h = Marshal.PtrToStructure<Handle>(ptr);
-        if (h == null)
+        if (result == IntPtr.Zero)
             return null;
 
-        var errorMessage = h.error_message == IntPtr.Zero ? null : MarshalPtrToStringUTF8(h.error_message);
+        var error = NativeMethods.chdb_result_error(result);
+        var errorMessage = error == IntPtr.Zero ? null : MarshalPtrToStringUTF8(error);
         if (errorMessage != null)
             return new LocalResult(null, errorMessage, 0, 0, TimeSpan.Zero);
 
-        var elapsed = TimeSpan.FromSeconds(h.elapsed);
+        var elapsed = TimeSpan.FromSeconds(NativeMethods.chdb_result_elapsed(result));
 
-        var buf = h.buf == IntPtr.Zero ? null : new byte[h.len];
+        var data = NativeMethods.chdb_result_buffer(result);
+        var buf = data == IntPtr.Zero ? null : new byte[checked((int)NativeMethods.chdb_result_length(result))];
         if (buf != null)
-            Marshal.Copy(h.buf, buf, 0, h.len);
-        return new LocalResult(buf, errorMessage, h.rows_read, h.bytes_read, elapsed);
+            Marshal.Copy(data, buf, 0, buf.Length);
+        return new LocalResult(buf, errorMessage, NativeMethods.chdb_result_rows_read(result), NativeMethods.chdb_result_bytes_read(result), elapsed);
     }
 
     private static string MarshalPtrToStringUTF8(nint ptr)
@@ -61,19 +63,5 @@ public record LocalResult
             var clrString = System.Text.Encoding.UTF8.GetString(str, length);
             return clrString;
         }
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal class Handle
-    {
-        internal nint buf;
-        internal int len;
-        internal nint _vec; // std::vector<char> *, for freeing
-        internal double elapsed;
-        internal ulong rows_read;
-        internal ulong bytes_read;
-        internal nint error_message;
-
-        public override string ToString() => $"Handle{{\n\tbuf={buf},\n\tlen={len},\n\t_vec={_vec},\n\telapsed={elapsed},\n\trows_read={rows_read},\n\tbytes_read={bytes_read},\n\terror_message={error_message}}}";
     }
 }

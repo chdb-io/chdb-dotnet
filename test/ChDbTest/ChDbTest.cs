@@ -10,7 +10,7 @@ public class ChDbTest
         Assert.IsNotNull(result);
         Assert.AreEqual(1UL, result.RowsRead);
         Assert.AreEqual(50UL, result.BytesRead);
-        Assert.AreEqual("24.5.1.1\n", result.Text);
+        Assert.AreEqual("26.11.1.1\n", result.Text);
         Assert.IsNull(result.ErrorMessage);
         Assert.AreNotEqual(TimeSpan.Zero, result.Elapsed);
     }
@@ -33,12 +33,14 @@ public class ChDbTest
         var r3 = ChDb.Query("select version()", "wrong_format");
         Assert.IsNotNull(r3);
         Assert.IsNull(r3.Text);
-        StringAssert.Contains(r3.ErrorMessage, "Unknown output format");
+        StringAssert.Contains(r3.ErrorMessage, "Unknown format");
     }
 
     [TestMethod]
     public void NoDataTest()
     {
+        // the in-memory engine is shared by every stateless query in the process
+        ChDb.Query("drop table if exists x");
         var result = ChDb.Query("create table x(a UInt8, b UInt8, c UInt8) Engine=Memory");
         Assert.IsNotNull(result);
         Assert.AreEqual(0UL, result.RowsRead);
@@ -47,6 +49,7 @@ public class ChDbTest
         Assert.IsNull(result.ErrorMessage);
         Assert.AreNotEqual(TimeSpan.Zero, result.Elapsed);
         Assert.IsTrue(0.1 > result.Elapsed.TotalSeconds);
+        ChDb.Query("drop table x");
     }
 
     [TestMethod]
@@ -91,7 +94,8 @@ public class ChDbTest
             """;
         var result = ChDb.Query(sql);
         Assert.IsNotNull(result);
-        Assert.AreEqual("", result.Text);
+        // a multi-statement query returns the output of every statement
+        Assert.AreEqual("1\t2\t3\ntest\n", result.Text);
         Assert.AreEqual(null, result.ErrorMessage);
     }
 
@@ -101,7 +105,7 @@ public class ChDbTest
         var result = ChDb.Query("DESCRIBE s3('https://datasets-documentation.s3.eu-west-3.amazonaws.com/house_parquet/house_0.parquet')");
         Assert.IsNotNull(result);
         Assert.IsNull(result.ErrorMessage);
-        StringAssert.StartsWith(result.Text, "price\tNullable(Int64)");
+        StringAssert.StartsWith(result.Text, "price\tInt64");
     }
 
     [TestMethod]
@@ -145,7 +149,7 @@ public class ChDbTest
         // Console.WriteLine($"Query result:\n{result?.Text}");
         Assert.IsNotNull(result);
         Assert.AreEqual(4UL, result.RowsRead);
-        Assert.AreEqual(155UL, result.BytesRead);
+        Assert.AreEqual(147UL, result.BytesRead);
         StringAssert.StartsWith(result.Text,
             """
             "Name","Age","City"
