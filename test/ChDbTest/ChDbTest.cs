@@ -56,7 +56,11 @@ public class ChDbTest
     public void EmptyResultTest()
     {
         // filter to stay independent from tables created by other tests
-        var result = ChDb.Query("show tables like 'no_such_table_%'");
+        var sql = "show tables like 'no_such_table_%'";
+        // the first access to the system tables in a process sets them up (25-200 ms on the
+        // macOS runners), which is not what the elapsed time below is about
+        ChDb.Query(sql);
+        var result = ChDb.Query(sql);
         Assert.IsNotNull(result);
         Assert.AreEqual(0UL, result.RowsRead);
         Assert.AreEqual(0UL, result.BytesRead);
