@@ -215,6 +215,18 @@ public class ChDbTest
     }
 
     [TestMethod]
+    public void InMemoryDirectoryTest()
+    {
+        // the in-memory engine keeps nothing in the working directory
+        if (Directory.Exists(":memory:"))
+            Directory.Delete(":memory:", true);
+        using var s = new Session { DataPath = ":memory:" };
+        Assert.AreEqual("1\n", s.Query("SELECT 1")?.Text);
+        Assert.AreEqual("1\n", ChDb.Query("SELECT 1")?.Text);
+        Assert.IsFalse(Directory.Exists(":memory:"));
+    }
+
+    [TestMethod]
     public void SettingsIsolationTest()
     {
         // SET changes the settings of its own session only, and of a stateless query only until it ends

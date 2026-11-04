@@ -55,6 +55,18 @@ internal static class Connection
     // keeps the in-memory engine running between stateless queries
     private static Handle? _stateless;
 
+    static Connection()
+    {
+        // Stop the engine before the process exits. libchdb's own teardown of an engine still
+        // open at exit runs while C++ static destructors run, which its background threads
+        // (e.g. MergeTree merges) can still be using.
+        AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+        {
+            lock (Lock)
+                CloseAllLocked();
+        };
+    }
+
     internal sealed class Handle
     {
         internal Handle(string path, nint conn)
@@ -136,9 +148,13 @@ internal static class Connection
     {
         if (Open.Count > 0 && Open[0].Path != path)
             CloseAllLocked();
-        var argv = logLevel is null
-            ? new[] { "clickhouse", $"--path={path}" }
-            : new[] { "clickhouse", $"--path={path}", $"--log-level={logLevel}" };
+        var args = new List<string> { "clickhouse" };
+        // libchdb runs in memory without --path; --path=:memory: is a directory of that name
+        if (path != InMemoryPath)
+            args.Add($"--path={path}");
+        if (logLevel is not null)
+            args.Add($"--log-level={logLevel}");
+        var argv = args.ToArray();
         var conn = NativeMethods.chdb_connect(argv.Length, argv);
         if (conn == IntPtr.Zero)
             throw new InvalidOperationException($"Failed to open chdb connection for path '{path}'.");
