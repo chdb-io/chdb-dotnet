@@ -7,6 +7,14 @@ env:
   DOTNET_NOLOGO: 1
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
+permissions:
+  contents: read
+
+# supersede running builds of the same branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [ "main" ]
@@ -23,14 +31,15 @@ jobs:
   build_chdb:
     name: Build chdb-${{ matrix.rid }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       matrix:
        include:
+         # macos runners are arm64 since macos-14, so there is no runner to
+         # actually test osx-x64 anymore - it is only packed, not tested
          - os: ubuntu-latest
            rid: linux-x64
          - os: macos-latest
-           rid: osx-x64
-         - os: macos-14
            rid: osx-arm64
 
     steps:
@@ -39,17 +48,14 @@ jobs:
       run: |
         echo 'Reason: ${{ github.event.inputs.reason }}'
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: |
-          6.0.x
           8.0.x
-        source-url: https://nuget.pkg.github.com/vilinski/index.json
-      env:
-        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          10.0.x
     - name: Display dotnet version
       run: |
         dotnet --version
@@ -63,19 +69,19 @@ jobs:
 
     - name: Download chdb library
       run: ./update_libchdb.sh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build
       run: |
-        # copy to the correct location
-        cp libchdb.so src/chdb/libchdb.so
-        ls -lahS src/chdb/libchdb*
+        ls -lahS lib/*/libchdb.so
         dotnet build --no-restore --configuration Release
 
     - name: Test
       run: dotnet test -c Release /p:TestTfmsInParallel=false --logger "console;verbosity=detailed" --no-build --logger trx --results-directory "TestResults-${{ matrix.rid }}"
 
     # - name: Upload dotnet test results
-    #   uses: actions/upload-artifact@v4
+    #   uses: actions/upload-artifact@v7
     #   with:
     #     name: dotnet-results-${{ matrix.rid }}
     #     path: TestResults-${{ matrix.rid }}
@@ -99,71 +105,9 @@ jobs:
 
     # - name: Upload nupkg
     #   #run: ls -l nupkg/*.nupkg
-    #   uses: actions/upload-artifact@v4
+    #   uses: actions/upload-artifact@v7
     #   with:
     #     name: dotnet-nupkg-${{ matrix.rid }}
     #     path: nupkg
 
-  push_chdb:
-    if: github.event.pull_request.merged
-    name: Push chdb
-    needs: build_chdb
-    runs-on: ubuntu-latest
-    steps:
-
-    - uses: actions/checkout@v4
-
-    - name: Download chdb library
-      run: ./update_libchdb.sh
-
-    # - name: Upload libchdb Artifact
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: libchdb
-    #     path: libchdb.so
-
-    - name: Pack
-      run: |
-        cp libchdb.so src/chdb/libchdb.so
-        ls -lahS src/chdb/libchdb*
-        dotnet pack src/chdb/chdb.csproj -c Release --include-symbols
-        ls -lahS nupkg
-
-    - name: Publish the package to nuget.org
-      run: dotnet nuget push nupkg/chdb.*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
-
-
-  push_tool:
-    if: github.event.pull_request.merged
-    name: Push chdb-tool
-    needs: push_chdb
-    runs-on: ubuntu-latest
-    env:
-      PUSH_TOOL: true
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download chdb library
-        run: ./update_libchdb.sh
-
-      - name: Pack
-        run: |
-          ls -lahS .
-          ls -lahS src/chdb/*
-          cp libchdb.so src/chdb/
-          ls -lahS src/chdb/libchdb*
-          dotnet nuget sources add -n chdb ./nupkg
-          dotnet pack src/chdb-tool/chdb-tool.csproj -c Release --include-symbols
-          ls -lahS nupkg
-
-      - name: Publish
-        run: dotnet nuget push nupkg/chdb-tool.*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json  --api-key ${{ secrets.NUGET_AUTH_TOKEN_CHDB }}
-
-      - name: Test chdb-tool
-        run: |
-          ./update_libchdb.sh
-          dotnet tool install --add-source ./nupkg --global chdb-tool
-          which chdb
-          cp libchdb.so /home/runner/.dotnet/tools/
-          chdb --help
-          chdb "select version()" PrettyCompact
+  # publishing to nuget.org happens in deploy.yml, triggered by creating a release

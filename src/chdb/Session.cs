@@ -21,6 +21,7 @@ public record Session : IDisposable
 
     public void Dispose()
     {
+        Connection.Close(DataPath);
         if (IsTemp && DataPath?.EndsWith("chdb_") == true && Directory.Exists(DataPath))
             Directory.Delete(DataPath, true);
     }
@@ -38,15 +39,6 @@ public record Session : IDisposable
             DataPath = Path.Combine(Path.GetTempPath(), "chdb_");
         }
 
-        var argv = new[] {
-            "clickhouse",
-            "--multiquery",
-            $"--query={query}",
-            $"--output-format={format ?? Format ?? "TabSeparated"}",  //$"--path={DataPath}",
-            $"--path={DataPath}",
-            // $"--user_scripts_path={UdfPath}", $"--user_defined_executable_functions_config={UdfPath}/*.xml",
-            $"--log-level={LogLevel ?? "trace"}",
-        };
-        return ChDb.Execute(argv);
+        return Connection.Query(DataPath, query, format ?? Format ?? "TabSeparated", LogLevel);
     }
 }
