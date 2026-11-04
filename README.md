@@ -31,7 +31,7 @@ using ChDb;
 
 var result = ChDb.Query("select version()");
 Console.WriteLine(result.Text);
-// 26.5.1.1
+// 26.11.1.1
 var s = new Session();
 var result = s.Query("select * from system.formats where is_output = 1", "PrettyCompact");
 // ┌─name───────────────────────────────────────┬─is_input─┬─is_output─┬─supports_parallel_parsing─┬─supports_parallel_formatting─┐
@@ -94,10 +94,10 @@ chdb "select * from system.formats where is_output = 1" PrettyCompact
 # Build
 
 ```bash
-# downloads the library of the host platform into lib/<platform>/
+# downloads the library of the host platform, in the ChdbVersion of Directory.Build.props, into lib/<platform>/
 ./update_libchdb.sh
 # optionally specify explicit version and platform
-./update_libchdb.sh v26.5.0 linux-x86_64
+./update_libchdb.sh v26.11.0-rc.1 linux-x86_64
 dotnet build -c Release
 dotnet test -c Release
 dotnet pack src/chdb/chdb.csproj -c Release

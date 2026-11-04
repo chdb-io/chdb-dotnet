@@ -9,8 +9,8 @@ public class ChDbTest
         var result = ChDb.Query("select version()");
         Assert.IsNotNull(result);
         Assert.AreEqual(1UL, result.RowsRead);
-        Assert.AreEqual(48UL, result.BytesRead);
-        Assert.AreEqual("26.5.1.1\n", result.Text);
+        Assert.AreEqual(50UL, result.BytesRead);
+        Assert.AreEqual("26.11.1.1\n", result.Text);
         Assert.IsNull(result.ErrorMessage);
         Assert.AreNotEqual(TimeSpan.Zero, result.Elapsed);
     }
