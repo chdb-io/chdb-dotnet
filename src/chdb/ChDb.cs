@@ -38,58 +38,128 @@ internal static class NativeMethods
 }
 
 /// <summary>
-/// Manages the single chdb connection allowed per process.
-/// libchdb permits only one active connection at a time, so the connection is
-/// shared and transparently reopened when a query targets a different data path.
+/// Opens and closes the chdb connections.
+/// libchdb runs one engine per process, on one data path. The connections to that path
+/// share it, databases and tables included, but each has a session state of its own: the
+/// settings changed with SET and the current database. The engine stops when the last of
+/// them closes, and only then can a connection to another path be opened, so opening one
+/// closes the connections to the current path first; their owners reconnect, with a fresh
+/// session state, on their next query.
 /// </summary>
 internal static class Connection
 {
     internal const string InMemoryPath = ":memory:";
 
     private static readonly object Lock = new();
-    private static nint _conn; // chdb_connection*
-    private static string? _path;
+    private static readonly List<Handle> Open = new(); // all to the same path
+    // keeps the in-memory engine running between stateless queries
+    private static Handle? _stateless;
 
-    internal static LocalResult? Query(string? path, string query, string format, string? logLevel = null)
+    internal sealed class Handle
     {
+        internal Handle(string path, nint conn)
+        {
+            Path = path;
+            Conn = conn;
+        }
+
+        internal string Path { get; }
+        internal nint Conn { get; set; } // chdb_connection*, zero once closed
+    }
+
+    /// <summary>
+    /// Runs a query on a session's connection, opening it unless it is open to the path.
+    /// </summary>
+    internal static LocalResult? Query(ref Handle? connection, string? path, string query, string format, string? logLevel)
+    {
+        path ??= InMemoryPath;
         lock (Lock)
         {
-            Connect(path ?? InMemoryPath, logLevel);
-            var resultHandle = NativeMethods.chdb_query(Marshal.ReadIntPtr(_conn), query, format);
-            return LocalResult.FromHandle(resultHandle);
+            if (connection is null || connection.Conn == IntPtr.Zero || connection.Path != path)
+            {
+                if (connection is not null)
+                    CloseLocked(connection);
+                connection = OpenLocked(path, logLevel);
+            }
+            return Run(connection, query, format);
         }
     }
 
-    internal static void Close(string? path)
+    /// <summary>
+    /// Runs a stateless query on a connection of its own, so that its SET statements end with it.
+    /// </summary>
+    internal static LocalResult? Query(string query, string format)
     {
         lock (Lock)
         {
-            if (_conn != IntPtr.Zero && _path == (path ?? InMemoryPath))
-                CloseCurrent();
+            if (_stateless is null || _stateless.Conn == IntPtr.Zero)
+                _stateless = OpenLocked(InMemoryPath, null);
+            var connection = OpenLocked(InMemoryPath, null);
+            try
+            {
+                return Run(connection, query, format);
+            }
+            finally
+            {
+                CloseLocked(connection);
+            }
         }
     }
 
-    private static void CloseCurrent()
+    internal static void Close(Handle? connection)
     {
-        NativeMethods.chdb_close_conn(_conn);
-        _conn = IntPtr.Zero;
-        _path = null;
-    }
-
-    private static void Connect(string path, string? logLevel)
-    {
-        if (_conn != IntPtr.Zero && _path == path)
+        if (connection is null)
             return;
-        if (_conn != IntPtr.Zero)
-            CloseCurrent();
+        lock (Lock)
+            CloseLocked(connection);
+    }
+
+    /// <summary>
+    /// Stops the engine if it runs on the path, closing every connection to it.
+    /// </summary>
+    internal static void CloseAll(string? path)
+    {
+        lock (Lock)
+        {
+            if (Open.Count > 0 && Open[0].Path == (path ?? InMemoryPath))
+                CloseAllLocked();
+        }
+    }
+
+    private static LocalResult? Run(Handle connection, string query, string format)
+    {
+        var resultHandle = NativeMethods.chdb_query(Marshal.ReadIntPtr(connection.Conn), query, format);
+        return LocalResult.FromHandle(resultHandle);
+    }
+
+    private static Handle OpenLocked(string path, string? logLevel)
+    {
+        if (Open.Count > 0 && Open[0].Path != path)
+            CloseAllLocked();
         var argv = logLevel is null
             ? new[] { "clickhouse", $"--path={path}" }
             : new[] { "clickhouse", $"--path={path}", $"--log-level={logLevel}" };
         var conn = NativeMethods.chdb_connect(argv.Length, argv);
         if (conn == IntPtr.Zero)
             throw new InvalidOperationException($"Failed to open chdb connection for path '{path}'.");
-        _conn = conn;
-        _path = path;
+        var connection = new Handle(path, conn);
+        Open.Add(connection);
+        return connection;
+    }
+
+    private static void CloseLocked(Handle connection)
+    {
+        if (connection.Conn == IntPtr.Zero)
+            return;
+        NativeMethods.chdb_close_conn(connection.Conn);
+        connection.Conn = IntPtr.Zero;
+        Open.Remove(connection);
+    }
+
+    private static void CloseAllLocked()
+    {
+        while (Open.Count > 0)
+            CloseLocked(Open[Open.Count - 1]);
     }
 }
 
@@ -110,11 +180,12 @@ public static class ChDb
     /// Set <see cref="Session.DataPath"/> to a non-temporary directory to keep the data between sessions.
     /// Note: since libchdb v3 the engine runs for the lifetime of the process, so in-memory objects
     /// (e.g. Memory engine tables) created by previous queries stay visible to later queries.
+    /// Settings changed with SET, by contrast, only last until the query ends.
     /// </remarks>
     public static LocalResult? Query(string query, string? format = null)
     {
         if (query is null)
             throw new ArgumentNullException(nameof(query));
-        return Connection.Query(null, query, format ?? "TabSeparated");
+        return Connection.Query(query, format ?? "TabSeparated");
     }
 }

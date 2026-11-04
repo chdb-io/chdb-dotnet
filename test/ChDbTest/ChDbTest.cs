@@ -213,4 +213,19 @@ public class ChDbTest
 
         s.Query($"DROP DATABASE IF EXISTS db_{nr}");
     }
+
+    [TestMethod]
+    public void SettingsIsolationTest()
+    {
+        // SET changes the settings of its own session only, and of a stateless query only until it ends
+        using var s1 = new Session { DataPath = ":memory:" };
+        using var s2 = new Session { DataPath = ":memory:" };
+        var set = s1.Query("SET log_comment = 's1'");
+        Assert.IsNotNull(set);
+        Assert.IsNull(set.ErrorMessage);
+        Assert.AreEqual("stateless\n", ChDb.Query("SET log_comment = 'stateless'; SELECT getSetting('log_comment')")?.Text);
+        Assert.AreEqual("s1\n", s1.Query("SELECT getSetting('log_comment')")?.Text);
+        Assert.AreEqual("\n", s2.Query("SELECT getSetting('log_comment')")?.Text);
+        Assert.AreEqual("\n", ChDb.Query("SELECT getSetting('log_comment')")?.Text);
+    }
 }
