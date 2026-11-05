@@ -12,9 +12,11 @@
         <EnablePackageValidation>true</EnablePackageValidation>
         <PackageOutputPath>../../nupkg</PackageOutputPath>
         <!-- Package versions follow the bundled libchdb/ClickHouse version (built in chdb-io/chdb-core) -->
-        <ChdbVersion>26.5.0</ChdbVersion>
-        <Version>$(ChdbVersion)</Version>
-        <Version Condition="'$(GITHUB_RUN_NUMBER)' != ''">$(ChdbVersion).$(GITHUB_RUN_NUMBER)</Version>
+        <ChdbVersion>26.11.0-rc.2</ChdbVersion>
+        <!-- without the -rc.N of a chdb-core release candidate: the packages are releases either way -->
+        <ChdbPackageVersion>$([System.Text.RegularExpressions.Regex]::Replace('$(ChdbVersion)', '-rc\.[0-9]+$', ''))</ChdbPackageVersion>
+        <Version>$(ChdbPackageVersion)</Version>
+        <Version Condition="'$(GITHUB_RUN_NUMBER)' != ''">$(ChdbPackageVersion).$(GITHUB_RUN_NUMBER)</Version>
         <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
         <PackageVersion Condition="'$(BuildNumber)' != ''">$(Version).$(BuildNumber)</PackageVersion>
         <Authors>vilinski</Authors>

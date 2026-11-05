@@ -1,3 +1,7 @@
+using System.Collections;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+
 namespace ChDb;
 
 [TestClass]
@@ -9,8 +13,8 @@ public class ChDbTest
         var result = ChDb.Query("select version()");
         Assert.IsNotNull(result);
         Assert.AreEqual(1UL, result.RowsRead);
-        Assert.AreEqual(48UL, result.BytesRead);
-        Assert.AreEqual("26.5.1.1\n", result.Text);
+        Assert.AreEqual(50UL, result.BytesRead);
+        Assert.AreEqual("26.11.1.1\n", result.Text);
         Assert.IsNull(result.ErrorMessage);
         Assert.AreNotEqual(TimeSpan.Zero, result.Elapsed);
     }
@@ -56,7 +60,11 @@ public class ChDbTest
     public void EmptyResultTest()
     {
         // filter to stay independent from tables created by other tests
-        var result = ChDb.Query("show tables like 'no_such_table_%'");
+        var sql = "show tables like 'no_such_table_%'";
+        // the first access to the system tables in a process sets them up (25-200 ms on the
+        // macOS runners), which is not what the elapsed time below is about
+        ChDb.Query(sql);
+        var result = ChDb.Query(sql);
         Assert.IsNotNull(result);
         Assert.AreEqual(0UL, result.RowsRead);
         Assert.AreEqual(0UL, result.BytesRead);
@@ -213,4 +221,58 @@ public class ChDbTest
 
         s.Query($"DROP DATABASE IF EXISTS db_{nr}");
     }
+
+    [TestMethod]
+    public void InMemoryDirectoryTest()
+    {
+        // the in-memory engine keeps nothing in the working directory
+        if (Directory.Exists(":memory:"))
+            Directory.Delete(":memory:", true);
+        using var s = new Session { DataPath = ":memory:" };
+        Assert.AreEqual("1\n", s.Query("SELECT 1")?.Text);
+        Assert.AreEqual("1\n", ChDb.Query("SELECT 1")?.Text);
+        Assert.IsFalse(Directory.Exists(":memory:"));
+    }
+
+    [TestMethod]
+    public void SettingsIsolationTest()
+    {
+        // SET changes the settings of its own session only, and of a stateless query only until it ends
+        using var s1 = new Session { DataPath = ":memory:" };
+        using var s2 = new Session { DataPath = ":memory:" };
+        var set = s1.Query("SET log_comment = 's1'");
+        Assert.IsNotNull(set);
+        Assert.IsNull(set.ErrorMessage);
+        Assert.AreEqual("stateless\n", ChDb.Query("SET log_comment = 'stateless'; SELECT getSetting('log_comment')")?.Text);
+        Assert.AreEqual("s1\n", s1.Query("SELECT getSetting('log_comment')")?.Text);
+        Assert.AreEqual("\n", s2.Query("SELECT getSetting('log_comment')")?.Text);
+        Assert.AreEqual("\n", ChDb.Query("SELECT getSetting('log_comment')")?.Text);
+        // a copy has a connection of its own: it neither sees nor closes the original's
+        var copy = s1 with { LogLevel = "debug" };
+        Assert.AreEqual("\n", copy.Query("SELECT getSetting('log_comment')")?.Text);
+        copy.Dispose();
+        Assert.AreEqual("s1\n", s1.Query("SELECT getSetting('log_comment')")?.Text);
+    }
+
+    [TestMethod]
+    public void UndisposedSessionTest()
+    {
+        // a session that is never disposed gives its connection back once it is collected
+        var open = (ICollection)typeof(ChDb).Assembly.GetType("ChDb.Connection")!
+            .GetField("Open", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
+        Assert.AreEqual("1\n", ChDb.Query("SELECT 1")?.Text);
+        var before = open.Count;
+        for (var i = 0; i < 20; i++)
+            QueryWithoutDispose();
+        for (var i = 0; i < 5 && open.Count > before; i++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+        Assert.AreEqual(before, open.Count);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void QueryWithoutDispose() =>
+        Assert.AreEqual("1\n", new Session { DataPath = ":memory:" }.Query("SELECT 1")?.Text);
 }

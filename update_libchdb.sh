@@ -25,8 +25,8 @@ determine_platform() {
 }
 
 # libchdb binaries are built in chdb-io/chdb-core and versioned after ClickHouse.
-# Pick the latest stable (non-prerelease) release which contains the libchdb
-# tarball for the requested platform.
+# Without an explicit version, take the release Directory.Build.props pins as
+# ChdbVersion: the packages are versioned after it and the tests expect it.
 REPO="chdb-io/chdb-core"
 
 # unauthenticated github api requests are rate-limited (fails on shared CI runner
@@ -36,6 +36,8 @@ if [ -n "$GITHUB_TOKEN" ]; then
     CURL_AUTH=(--header "Authorization: Bearer $GITHUB_TOKEN")
 fi
 
+# the latest stable (non-prerelease) release which contains the libchdb tarball
+# for the requested platform
 determine_latest_release() {
     local response tags tag url
     response=$(curl --silent "${CURL_AUTH[@]}" "https://api.github.com/repos/$REPO/releases?per_page=30")
@@ -55,22 +57,22 @@ determine_latest_release() {
     done
 }
 
+determine_pinned_release() {
+    sed -n 's:.*<ChdbVersion>\(.*\)</ChdbVersion>.*:v\1:p' "$(dirname "$0")/Directory.Build.props"
+}
+
 PLATFORM=${2:-$(determine_platform)}
-RELEASE=${1:-$(determine_latest_release)}
+RELEASE=${1:-$(determine_pinned_release)}
 
 if [ -z "$RELEASE" ]; then
-    echo "No release with $PLATFORM-libchdb.tar.gz found"
+    echo "No ChdbVersion found in Directory.Build.props"
     exit 1
 fi
 
 # Notify if selected release is not the latest
-if [ -z "$1" ]; then
-    echo "Using latest version $RELEASE"
-else
-    LATEST_RELEASE=$(determine_latest_release)
-    if [ "$RELEASE" != "$LATEST_RELEASE" ]; then
-        echo "Using version $RELEASE, while the latest version is $LATEST_RELEASE"
-    fi
+LATEST_RELEASE=$(determine_latest_release)
+if [ "$RELEASE" != "$LATEST_RELEASE" ]; then
+    echo "Using version $RELEASE, while the latest stable version is $LATEST_RELEASE"
 fi
 
 # Download the file, untar into lib/<platform> and cleanup

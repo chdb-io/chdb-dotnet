@@ -37,7 +37,7 @@ jobs:
             dotnet pack src/chdb-runtime/chdb-runtime.csproj --configuration Release -p:RID=$rid
           done
           # the tool depends on the chdb package just built above
-          dotnet nuget sources add -n local ./nupkg
+          dotnet nuget add source "$GITHUB_WORKSPACE/nupkg" -n local
           PUSH_TOOL=true dotnet pack src/chdb-tool/chdb-tool.csproj --configuration Release --include-symbols
       - name: Publish the packages to nuget.org
         run: dotnet nuget push 'nupkg/*.nupkg' --skip-duplicate -k $NUGET_AUTH_TOKEN -s https://api.nuget.org/v3/index.json
