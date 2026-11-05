@@ -20,9 +20,14 @@ Running on platforms: linux, osx, windows, and architectures: x64, arm64.
 >Note for windows users - there is no windows build in sight, but you can still use it in WSL.
 
 ```bash
-# install the package to your project
+# install the package to your project (add --prerelease for a build on a chdb-core release candidate)
 dotnet add package chdb
 ```
+
+The native library comes in a package per platform (`chdb-linux-x64`, `chdb-linux-arm64`, `chdb-osx-x64`,
+`chdb-osx-arm64`), which NuGet picks from the `chdb` package's `runtime.json` only when the project names a
+runtime identifier: set `<RuntimeIdentifier>linux-x64</RuntimeIdentifier>` (or `osx-arm64`, ...) in the project,
+or pass `-r <rid>` to `dotnet build`/`run`/`publish`.
 
 Then you can use it in your code like this:
 
