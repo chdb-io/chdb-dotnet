@@ -57,6 +57,7 @@ internal static class Connection
     // what an open connection costs the native side, so that the collector finalizes sessions
     // nobody disposed before their connections pile up (measured at about 140 KiB)
     private const long ConnectionMemoryPressure = 256 * 1024;
+    private static readonly TimeSpan ExitWaitForQueries = TimeSpan.FromSeconds(10);
 
     static Connection()
     {
@@ -65,8 +66,18 @@ internal static class Connection
         // (e.g. MergeTree merges) can still be using.
         AppDomain.CurrentDomain.ProcessExit += (_, _) =>
         {
-            lock (Lock)
+            // A query still running holds the lock: let it finish, but do not keep the process
+            // from exiting for longer than that wait; libchdb's own teardown then has to do.
+            if (!Monitor.TryEnter(Lock, ExitWaitForQueries))
+                return;
+            try
+            {
                 CloseAllLocked();
+            }
+            finally
+            {
+                Monitor.Exit(Lock);
+            }
         };
     }
 
