@@ -26,10 +26,10 @@
       <RuntimeJsonContent>
 {
   "runtimes": {
-    "linux-x64":   { "chdb": { "chdb-linux-x64":   "$(ChdbVersion)" } },
-    "linux-arm64": { "chdb": { "chdb-linux-arm64": "$(ChdbVersion)" } },
-    "osx-x64":     { "chdb": { "chdb-osx-x64":     "$(ChdbVersion)" } },
-    "osx-arm64":   { "chdb": { "chdb-osx-arm64":   "$(ChdbVersion)" } }
+    "linux-x64":   { "chdb": { "chdb-linux-x64":   "$(PackageVersion)" } },
+    "linux-arm64": { "chdb": { "chdb-linux-arm64": "$(PackageVersion)" } },
+    "osx-x64":     { "chdb": { "chdb-osx-x64":     "$(PackageVersion)" } },
+    "osx-arm64":   { "chdb": { "chdb-osx-arm64":   "$(PackageVersion)" } }
   }
 }
       </RuntimeJsonContent>
