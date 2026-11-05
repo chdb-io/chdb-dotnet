@@ -8,6 +8,25 @@ public record Session : IDisposable
 {
     private Connection.Handle? _connection; // opened by the first query
 
+    public Session()
+    {
+    }
+
+    /// <summary>
+    /// A copy made with <c>with</c> opens a connection of its own, and so gets its own settings and
+    /// current database instead of sharing the original's.
+    /// </summary>
+    protected Session(Session original)
+    {
+        Format = original.Format;
+        DataPath = original.DataPath;
+        LogLevel = original.LogLevel;
+        IsTemp = original.IsTemp;
+    }
+
+    // a session nobody disposed still gives its connection back once it is collected
+    ~Session() => Connection.Close(_connection);
+
     /// <summary>
     /// Output format for queries if not explicitely specified. Default is TabSeparated
     /// </summary>
@@ -29,6 +48,7 @@ public record Session : IDisposable
     {
         Connection.Close(_connection);
         _connection = null;
+        GC.SuppressFinalize(this);
         if (IsTemp && DataPath?.EndsWith("chdb_") == true && Directory.Exists(DataPath))
         {
             // the engine must stop before its data directory goes, also if other sessions use it

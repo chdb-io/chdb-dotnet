@@ -1,3 +1,7 @@
+using System.Collections;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+
 namespace ChDb;
 
 [TestClass]
@@ -243,5 +247,32 @@ public class ChDbTest
         Assert.AreEqual("s1\n", s1.Query("SELECT getSetting('log_comment')")?.Text);
         Assert.AreEqual("\n", s2.Query("SELECT getSetting('log_comment')")?.Text);
         Assert.AreEqual("\n", ChDb.Query("SELECT getSetting('log_comment')")?.Text);
+        // a copy has a connection of its own: it neither sees nor closes the original's
+        var copy = s1 with { LogLevel = "debug" };
+        Assert.AreEqual("\n", copy.Query("SELECT getSetting('log_comment')")?.Text);
+        copy.Dispose();
+        Assert.AreEqual("s1\n", s1.Query("SELECT getSetting('log_comment')")?.Text);
     }
+
+    [TestMethod]
+    public void UndisposedSessionTest()
+    {
+        // a session that is never disposed gives its connection back once it is collected
+        var open = (ICollection)typeof(ChDb).Assembly.GetType("ChDb.Connection")!
+            .GetField("Open", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
+        Assert.AreEqual("1\n", ChDb.Query("SELECT 1")?.Text);
+        var before = open.Count;
+        for (var i = 0; i < 20; i++)
+            QueryWithoutDispose();
+        for (var i = 0; i < 5 && open.Count > before; i++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+        Assert.AreEqual(before, open.Count);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void QueryWithoutDispose() =>
+        Assert.AreEqual("1\n", new Session { DataPath = ":memory:" }.Query("SELECT 1")?.Text);
 }

@@ -54,6 +54,9 @@ internal static class Connection
     private static readonly List<Handle> Open = new(); // all to the same path
     // keeps the in-memory engine running between stateless queries
     private static Handle? _stateless;
+    // what an open connection costs the native side, so that the collector finalizes sessions
+    // nobody disposed before their connections pile up (measured at about 140 KiB)
+    private const long ConnectionMemoryPressure = 256 * 1024;
 
     static Connection()
     {
@@ -160,6 +163,7 @@ internal static class Connection
             throw new InvalidOperationException($"Failed to open chdb connection for path '{path}'.");
         var connection = new Handle(path, conn);
         Open.Add(connection);
+        GC.AddMemoryPressure(ConnectionMemoryPressure);
         return connection;
     }
 
@@ -170,6 +174,7 @@ internal static class Connection
         NativeMethods.chdb_close_conn(connection.Conn);
         connection.Conn = IntPtr.Zero;
         Open.Remove(connection);
+        GC.RemoveMemoryPressure(ConnectionMemoryPressure);
     }
 
     private static void CloseAllLocked()
