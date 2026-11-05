@@ -20,7 +20,7 @@ Running on platforms: linux, osx, windows, and architectures: x64, arm64.
 >Note for windows users - there is no windows build in sight, but you can still use it in WSL.
 
 ```bash
-# install the package to your project (add --prerelease for a build on a chdb-core release candidate)
+# install the package to your project
 dotnet add package chdb
 ```
 
