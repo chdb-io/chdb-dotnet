@@ -12,7 +12,7 @@
         <EnablePackageValidation>true</EnablePackageValidation>
         <PackageOutputPath>../../nupkg</PackageOutputPath>
         <!-- Package versions follow the bundled libchdb/ClickHouse version (built in chdb-io/chdb-core) -->
-        <ChdbVersion>26.11.0-rc.1</ChdbVersion>
+        <ChdbVersion>26.11.0-rc.2</ChdbVersion>
         <Version>$(ChdbVersion)</Version>
         <Version Condition="'$(GITHUB_RUN_NUMBER)' != ''">$(ChdbVersion).$(GITHUB_RUN_NUMBER)</Version>
         <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>

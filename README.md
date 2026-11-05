@@ -97,7 +97,7 @@ chdb "select * from system.formats where is_output = 1" PrettyCompact
 # downloads the library of the host platform, in the ChdbVersion of Directory.Build.props, into lib/<platform>/
 ./update_libchdb.sh
 # optionally specify explicit version and platform
-./update_libchdb.sh v26.11.0-rc.1 linux-x86_64
+./update_libchdb.sh v26.11.0-rc.2 linux-x86_64
 dotnet build -c Release
 dotnet test -c Release
 dotnet pack src/chdb/chdb.csproj -c Release
